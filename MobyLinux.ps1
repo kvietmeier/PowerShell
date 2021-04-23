@@ -75,6 +75,7 @@ $ProgressPreference = "SilentlyContinue"
 # Explicitly disable Module autoloading and explicitly import the
 # Modules this script relies on. This is not strictly necessary but
 # good practise as it prevents arbitrary errors
+
 $PSModuleAutoloadingPreference = 'None'
 
 Import-Module Microsoft.PowerShell.Utility
