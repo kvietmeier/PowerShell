@@ -4,23 +4,10 @@
   Created By: Karl Vietmeier
     
   Description:
-   Functions amd aliases for my PowerShel profile.
+   Functions and aliases for my PowerShell profile.
 
 #>
 ###====================================================================================###
-
-# Stop on first error
-#$ErrorActionPreference = "stop"
-
-# Run from the location of the script
-#Set-Location $PSscriptroot
-
-### Get my functions and credentials
-# Credentials  (stored outside the repo)
-#. '..\..\Certs\resources.ps1'
-
-# Functions (In this repo)
-#. '.\FunctionLibrary.ps1'
 
 
 ###====================================================================================###
