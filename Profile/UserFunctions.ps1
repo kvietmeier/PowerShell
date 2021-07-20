@@ -186,3 +186,53 @@ Set-Alias -Name b -Value Get-GitBranch -Force -Option AllScope
 function Get-GitRemote { & git remote -v $args }
 Set-Alias -Name r -Value Get-GitRemote -Force -Option AllScope
 #>
+
+###====================================================================================###
+#      Azure related
+###====================================================================================###
+function AZConnectSP ()
+{
+    <# This function requires the following variables to be defined 
+      $SPAppID
+      $SPSecret
+      $SubID
+      $TenantID 
+    #>
+
+    $context = Get-AzContext
+
+    # If I'm not connected/authorized, connect with Service Principle
+    if (!$context -or ($context.Subscription.Id -ne $SubID)) 
+    {
+        Write-Host "" 
+        Write-Host "Authenticating to Subscription: $SubID with Service Principle" 
+        Write-Host "" 
+        
+        # Script Automation w/Service Principle - no prompts
+        $SPPassWd = $SPSecret | ConvertTo-SecureString -AsPlainText -Force 
+        $SPCred   = New-Object -TypeName System.Management.Automation.PSCredential($SPAppID, $SPPassWd)
+        Connect-AzAccount -ServicePrincipal -Credential $SPCred -Tenant $TenantID
+    } 
+    else 
+    {
+        Write-Host ""
+        Write-Host "SubscriptionId $SubID is connected - no action required"
+        Write-Host ""
+    }
+}
+
+Set-Alias azconn AZConnectSP
+Set-Alias azdconn Disconnect-AzAccount
+
+# Do this with the Azure CLI
+function AZCommConnectSP () {
+  az login --service-principal `
+   --username $SPAppID `
+   --password $SPSecret `
+   --tenant $TenantID
+}
+
+Set-Alias azauth AZCommConnectSP
+
+function AZcommLogout () { azlogout "az logout --username $SPAppID" }
+Set-Alias azlogout AZcommLogout
