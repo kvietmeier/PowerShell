@@ -5,9 +5,19 @@
     
   Description:
    Functions and aliases for my PowerShell profile.
+   Uses values imported from a "secrets" file.
+
+   I can't take credit for all of these - some are sourced from various searches
+   through Github etc. I've tried to document this.
 
 #>
 ###====================================================================================###
+
+# Color ls output and other aliases
+Set-Alias l Get-ChildItemColor -option AllScope
+Set-Alias ls Get-ChildItemColorFormatWide -option AllScope
+Set-Alias dir Get-ChildItemColor -option AllScope
+Set-Alias -Name cd -value cddash -Option AllScope
 
 
 ###====================================================================================###
@@ -29,6 +39,7 @@ function find-file($name) {
 function get-path { ($Env:Path).Split(";") }
 function cd...  { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
+function cd~ { Set-Location C:\Users\ksvietme }
 
 Function lock
 {
@@ -236,3 +247,22 @@ Set-Alias azauth AZCommConnectSP
 
 function AZcommLogout () { azlogout "az logout --username $SPAppID" }
 Set-Alias azlogout AZcommLogout
+
+#-- Start and stop some VMs I use
+function StartDPDK {
+  Start-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait
+  Start-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait
+}
+Set-Alias dpdkstart StartDPDK
+
+function StopDPDK {
+  Stop-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait -Force
+}
+Set-Alias dpdkstop StopDPDK
+
+function ReStartDPDK {
+  Restart-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait
+  Restart-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait
+}
+Set-Alias dpdkreset ReStartDPDK
