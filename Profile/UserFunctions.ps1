@@ -241,7 +241,7 @@ Set-Alias azauth AZCommConnectSP
 function AZcommLogout () { azlogout "az logout --username $SPAppID" }
 Set-Alias azlogout AZcommLogout
 
-#-- Start and stop some VMs I use
+#-- Start and stop Azure VMs - requires that you be authenticated to an Azure session
 function StartDPDK {
   Start-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait
   Start-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait
@@ -284,6 +284,7 @@ Set-Alias k8restart RestartK8S
 
 ### Misc utilities
 
+# Handy for getting your ISP assigned IP address.
 function MyIP {
   # Grab the router IP
   $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
