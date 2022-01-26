@@ -4,20 +4,10 @@
   Created By: Karl Vietmeier
     
   Description:
-   Functions and aliases for my PowerShell profile.
-   Uses values imported from a "secrets" file.
-
-   I can't take credit for all of these - some are sourced from various searches
-   through Github etc. I've tried to document this.
+   Functions amd aliases for my PowerShell profile.
 
 #>
 ###====================================================================================###
-
-# Color ls output and other aliases
-Set-Alias l Get-ChildItemColor -option AllScope
-Set-Alias ls Get-ChildItemColorFormatWide -option AllScope
-Set-Alias dir Get-ChildItemColor -option AllScope
-Set-Alias -Name cd -value cddash -Option AllScope
 
 
 ###====================================================================================###
@@ -39,7 +29,10 @@ function find-file($name) {
 function get-path { ($Env:Path).Split(";") }
 function cd...  { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
-function cd~ { Set-Location C:\Users\ksvietme }
+
+# Open a Windows Terminal as Admin
+function AdminTerminal { powershell "Start-Process -Verb RunAs cmd.exe '/c start wt.exe  -p ""Windows PowerShell""'" }
+Set-Alias tadmin AdminTerminal
 
 Function lock
 {
@@ -131,7 +124,7 @@ function pstree {
 		$ProcessesByParent[$Process.ParentProcessId] = $Siblings
 	}
 
-	function Show-ProcessTree([UInt32]$ProcessId, $IndentLevel) {
+	function Show-ProcessTree ([UInt32]$ProcessId, $IndentLevel) {
 		$Process = $ProcessesById[$ProcessId]
 		$Indent = " " * $IndentLevel
 		if ($Process.CommandLine) {
@@ -144,7 +137,7 @@ function pstree {
 		foreach ($Child in ($ProcessesByParent[$ProcessId] | Sort-Object CreationDate)) {
 			Show-ProcessTree $Child.ProcessId ($IndentLevel + 4)
 		}
-	}
+  }
 
 	Write-Output ("{0,6} {1}" -f "PID", "Command Line")
 	Write-Output ("{0,6} {1}" -f "---", "------------")
@@ -198,6 +191,7 @@ function Get-GitRemote { & git remote -v $args }
 Set-Alias -Name r -Value Get-GitRemote -Force -Option AllScope
 #>
 
+
 ###====================================================================================###
 #      Azure related
 ###====================================================================================###
@@ -242,7 +236,6 @@ function AZCommConnectSP () {
    --password $SPSecret `
    --tenant $TenantID
 }
-
 Set-Alias azauth AZCommConnectSP
 
 function AZcommLogout () { azlogout "az logout --username $SPAppID" }
@@ -266,3 +259,34 @@ function ReStartDPDK {
   Restart-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait
 }
 Set-Alias dpdkreset ReStartDPDK
+
+function StartK8S {
+  Start-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8smaster-1793" -NoWait
+  Start-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1747" -NoWait
+  Start-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1776" -NoWait
+}
+Set-Alias k8start StartK8S
+
+function StopK8S {
+  Stop-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8smaster-1793" -NoWait
+  Stop-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1747" -NoWait
+  Stop-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1776" -NoWait
+}
+Set-Alias k8stop StopK8S
+
+function RestartK8S {
+  Restart-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8smaster-1793" -NoWait
+  Restart-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1747" -NoWait
+  Restart-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1776" -NoWait
+}
+Set-Alias k8restart RestartK8S
+
+
+### Misc utilities
+
+function MyIP {
+  # Grab the router IP
+  $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
+  Write-Host ""
+  $RouterIP.ip
+}
