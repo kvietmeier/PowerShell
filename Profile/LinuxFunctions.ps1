@@ -11,8 +11,9 @@
 
 function df { get-volume }
 
-# Show hidden "." foldders
-function ll($name) { Get-ChildItem -Path . -Force }
+# Show hidden "." folders
+function ll($name) { Get-ChildItemColor -Path . -Force }
+function l($name) { Get-ChildItemColorFormatWide -Path . -Force }
 
 function sed($file, $find, $replace){
 	(Get-Content $file).replace("$find", $replace) | Set-Content $file

@@ -1,40 +1,38 @@
 ###====================================================================================###
 <#   
-  FileName: profile.ps1
+  FileName: Microsoft.PowerShell_profile.ps1
   Created By: Karl Vietmeier
     
   Description:
     My customized PowerShell Profile
+     * Detect VPN status and set proxies if required
+     * Create a bunch of useful "Linux like" aliases.
+     * Functions, aliases, and confidential variables are sourced from external files
+     * Ste the proxy in .gitconfig
 
-    * Detect VPN status and set proxies if required
-    * Create a bunch of useful "Linux like" aliases.
-    * Functions, aliases, and confidential variables are sourced from external files
+    To Do:
 
 #>
 ###====================================================================================###
 
 # Import some Modules
 Import-Module Get-ChildItemColor
-Import-Module posh-git
+#Import-Module posh-git
 
-# Color ls output and other aliases
-Set-Alias l Get-ChildItemColor -option AllScope
-Set-Alias ls Get-ChildItemColorFormatWide -option AllScope
-Set-Alias dir Get-ChildItemColor -option AllScope
-Set-Alias -Name cd -value cddash -Option AllScope
-
-# Import "secrets" that we don't want to keep in this file
-# TBD
-
-# Source files with functions and aliases
 # Run from the location of the script so I don't need full path
 Set-Location $PSscriptroot
 
-# Functions and confidential variables are in external files - In this repo
+### Source files with functions and aliases
+# Confidential variables
+. 'C:\.info\miscinfo.ps1'
+
+# Functions and Aliases
 . '.\UserFunctions.ps1'
 . '.\LinuxFunctions.ps1'
 . '.\DetectVPN.ps1'
-. '.\CompanyData.ps1'
+
+# So we know where the .gitconfig file lives
+$GitPath = 'C:\Users\ksvietme\.gitconfig'
 
 # Safe way to load variables from another file.
 #$CompanyData = Join-Path -Path $PSscriptroot -ChildPath CompanyData.psd1
@@ -48,21 +46,17 @@ $Identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
 $Principal = New-Object Security.Principal.WindowsPrincipal $identity
 $IsAdmin   = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
+
 # We don't need these any more; they were just temporary variables to get to $isAdmin. 
 # Delete them to prevent cluttering up the user profile. 
 Remove-Variable Identity
 Remove-Variable Principal
-Remove-Variable IsAdmin
 
 # Increase history
 $MaximumHistoryCount = 10000
 
 # Produce UTF-8 by default
 $PSDefaultParameterValues["Out-File:Encoding"]="utf8"
-
-# So we know where the .gitconfgig file lives
-$GitPath = 'C:\Users\ksvietme\.gitconfig'
-
 
 # Show selection menu for tab
 #Set-PSReadlineKeyHandler -Chord Tab -Function MenuComplete
@@ -71,12 +65,24 @@ $GitPath = 'C:\Users\ksvietme\.gitconfig'
 #. (Resolve-Path "$env:LOCALAPPDATA\GitHub\shell.ps1")
 #. $env:github_posh_git\profile.example.ps1
 
+# Force a starting directory - overrides the Windows Terminal setting
+$StartDir = join-path -path $env:HOMEPATH -childpath "Docs\Projects"
+Set-Location $StartDir
+
+### Set some global environment variables
+# Terraform wants unique ENV variables (get info from other file)
+$env:ARM_TENANT_ID       ="$TFM_TenantID"
+$env:ARM_SUBSCRIPTION_ID ="$TFM_SubID"
+$env:ARM_CLIENT_ID       ="$TFM_AppID"
+$env:ARM_CLIENT_SECRET   ="$TFM_AppSecret"
+
+# Set colors (call function in UserFunctions.ps1)
+#Set-Colors
 
 ###====================================================================================###
 #      VPN detection and setting proxies
 #      Leave this in here for now
 ###====================================================================================###
-
 # Domain to match
 #$dnsDomain = "intel"
 
@@ -92,7 +98,6 @@ $vpnstatus=Test-VPNConnection -LikeAdapterDescription $vpnAdapter
   $activeIPV4Interface will get set and no route will be false - but the else statement fails because there is no connectprofile.
   - stil does the right thing - not setting proxies so I just have the command silently fail.
 #>
-
 $activeIPV4Interface = Get-NetRoute `
     -DestinationPrefix 0.0.0.0/0 `
     -ErrorAction SilentlyContinue `
@@ -107,9 +112,17 @@ else {
     $activeNetworkType = (Get-NetConnectionProfile -InterfaceIndex $activeIPV4Interface -ErrorAction SilentlyContinue -ErrorVariable activeIPV4Interface).NetworkCategory
 }
 
-<###---
- If the VPN is up, we need to configure Vagrant and Git to use proxies.
- a corp network behind a FW will have a network type of "DomainAuthenticated"
+<# 
+ ###---
+  If the VPN is up:
+   * Set Vagrant flagfile
+   * Update .gitconfig to use proxies
+   * Set system proxies
+  
+  If not - Do nothing or if run in same session using ". $profile", reset flagfile and update .gitconfig
+  
+  NOTE - A corp network behind a FW will have a network type of "DomainAuthenticated"
+ ###---
 #>
 
 if (($vpnstatus -eq "True") -or ($activeNetworkType -eq "DomainAuthenticated"))
@@ -134,11 +147,11 @@ if (($vpnstatus -eq "True") -or ($activeNetworkType -eq "DomainAuthenticated"))
     (Get-Content -Path $GitPath) | Foreach-Object -Process {  $_ -replace $regEx, $replacement  } | Set-Content -Path $GitPath
 
 
-	Write-Host " "
+	Write-Host "----"
 	Write-Host "HTTP Proxy    - $HTTP_PROXY"
 	Write-Host "HTTPS Proxy   - $HTTPS_PROXY"
 	Write-Host "No Proxy      - $NO_PROXY"
-    Write-Host " "
+    Write-Host "----"
 
 } else {
 	# Update Vagrant flag file
@@ -148,11 +161,21 @@ if (($vpnstatus -eq "True") -or ($activeNetworkType -eq "DomainAuthenticated"))
     $regEx = ".*proxy.+"
     $replacement = "    #proxy = HTTPS_PROXY=http://proxy-dmz.intel.com:912"
 
-    # Do some text manipulation magic
+    # Do some text manipulation magic on .gitconfig to unset the proxy
     Set-Content -Path C:\Users\ksvietme\.setproxies -Value 'False'
     (Get-Content -Path $GitPath) | Foreach-Object -Process {  $_ -replace $regEx, $replacement  } | Set-Content -Path $GitPath
 
-    Write-Host "Not on Corp Network and no VPN - Not Setting Proxies"
+    # Unset the system proxy variables if they are already set
+    if (-not (Test-Path env:HTTP_PROXY)) { continue }
+     else { Remove-Item Env:HTTP_PROXY }
+     
+    if (-not (Test-Path env:HTTPS_PROXY)) { continue }
+     else { Remove-Item Env:HTTPS_PROXY }
+
+    if (-not (Test-Path env:NO_PROXY)) { continue }
+     else { Remove-Item Env:NO_PROXY }
+
+    Write-Host "Not on Corp Network and no VPN - No Proxy Needed"
     Write-Host ""
 
 }

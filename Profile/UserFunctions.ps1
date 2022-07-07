@@ -26,13 +26,68 @@ function find-file($name) {
 	}
 }
 
+#-- Path and cd related stuff
 function get-path { ($Env:Path).Split(";") }
 function cd...  { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
 
+function CDTerraform { Set-Location C:\Users\ksvietme\Docs\Projects\GitHub\Terraform\azure }
+Set-Alias cdtform CDTerraform
+
+###--- Terminal related
 # Open a Windows Terminal as Admin
 function AdminTerminal { powershell "Start-Process -Verb RunAs cmd.exe '/c start wt.exe  -p ""Windows PowerShell""'" }
 Set-Alias tadmin AdminTerminal
+
+###==== Set colors for dir listings ====#
+# - not working quite right
+# - https://github.com/joonro/Get-ChildItemColor
+# - https://github.com/joonro/Get-ChildItemColor/pull/23/commits/482bb078505e9812ac2a51026f259e6a3f7256a3
+
+function SetColors {
+  
+  # Change color for directories to Blue (works)
+  $GetChildItemColorTable.File['Directory'] = "Blue"
+
+  # Change color for executables to Green (not working)
+  ForEach ($Exe in $GetChildItemColorExtensions['ExecutableList']) 
+  {
+    $GetChildItemColorTable.File[$Exe] = "Green"
+  }
+  
+  # Office files (seems to work)
+  $GetChildItemColorExtensions['OfficeList'] = @(
+    ".docx",
+    ".pdf",
+    ".pptx",
+    ".vsdx",
+    ".xlsx"
+  )
+
+  ForEach ($Extension in $GetChildItemColorExtensions['OfficeList']) 
+  {
+    $GetChildItemColorTable.File.Add($Extension, "Yellow")
+  }
+
+  # Text files/scripts (works)
+  $GetChildItemColorExtensions['PlainText'] = @(
+    ".yaml",
+    ".yml",
+    ".tfvars",
+    ".code-workspace",
+    ".tf"
+  )
+
+  ForEach ($FileType in $GetChildItemColorExtensions['PlainText']) 
+  {
+    $GetChildItemColorTable.File.Add($FileType, "Yellow")
+  }
+  
+
+}  # End Color definitions
+
+Set-Alias mycolors SetColors
+SetColors
 
 Function lock
 {
@@ -46,7 +101,8 @@ Function lock
     $LockWorkStation::LockWorkStation()|Out-Null
 }
 
-function exp_here {
+###--- Apps
+function explore {
     explorer .
 }
 
@@ -63,36 +119,32 @@ Set-Alias GModel Get-Model
 Function Get-SerialNumber {(Get-WmiObject -Class:Win32_BIOS).SerialNumber}
 Set-Alias GSer Get-SerialNumber 
 
+function alias {Get-Alias | Format-Table -Property Name, Options -Autosize}
+
 
 ###====================================================================================###
-#      Prompt mods for ConEmu
+#      Prompt mods
 ###====================================================================================###
 function prompt
 {
-  $loc = Get-Location
-
+  $color = "Cyan"
+  
   # Emulate standard PS prompt with location followed by ">"
-  $out = "PS $loc> "
+  Write-Host ("KV " + $(Get-Location) +">") -NoNewLine -ForegroundColor $Color
+  
+  return " "
 
-  # Simple check for ConEmu existance and ANSI emulation enabled
-  if ($env:ConEmuANSI -eq "ON") {
-    # Let ConEmu know when the prompt ends, to select typed
-    # command properly with "Shift+Home", to change cursor
-    # position in the prompt by simple mouse click, etc.
-    $out += "$([char]27)]9;12$([char]7)"
+  # Don't know what this does - 
+  #$out = "PS $loc> "
+  #$loc   = Get-Location
+  #$out += "$([char]27)]9;12$([char]7)"
+  #
+  #if ($loc.Provider.Name -eq "FileSystem") {
+  #  $out += "$([char]27)]9;9;`"$($loc.Path)`"$([char]7)"
+  #}
+  #
+  #return $out
 
-    # And current working directory (FileSystem)
-    # ConEmu may show full path or just current folder name
-    # in the Tab label (check Tab templates)
-    # Also this knowledge is crucial to process hyperlinks clicks
-    # on files in the output from compilers and source control
-    # systems (git, hg, ...)
-    if ($loc.Provider.Name -eq "FileSystem") {
-      $out += "$([char]27)]9;9;`"$($loc.Path)`"$([char]7)"
-    }
-  }
-
-  return $out
 }
 
 
@@ -164,37 +216,78 @@ function unzip ($file) {
 ###====================================================================================###
 # For git commits
 function gpush {
-    Param($message)
-    git add -A; git commit -m $message; git push origin master
+  # Onle liner git commit with commit message  
+  Param($message)
+  git add -A; git commit -m $message; git push origin master
 }
 
+function Get-GitTree { & git log --graph --oneline --decorate $args }
+Set-Alias -Name glog -Value Get-GitTree -Force -Option AllScope
+
 <###  More GitHub aliases - uncomment to use. 
-function Get-GitStatus { & git status -sb $args }
+function Get-GitStatus { 
+  & git status -sb $args
+}
 Set-Alias -Name s -Value Get-GitStatus -Force -Option AllScope
+
 function Get-GitCommit { & git commit -ev $args }
 Set-Alias -Name c -Value Get-GitCommit -Force -Option AllScope
+
 function Get-GitAdd { & git add --all $args }
 Set-Alias -Name ga -Value Get-GitAdd -Force -Option AllScope
-function Get-GitTree { & git log --graph --oneline --decorate $args }
-Set-Alias -Name t -Value Get-GitTree -Force -Option AllScope
+
 function Get-GitPush { & git push $args }
 Set-Alias -Name gps -Value Get-GitPush -Force -Option AllScope
+
 function Get-GitPull { & git pull $args }
 Set-Alias -Name gpl -Value Get-GitPull -Force -Option AllScope
+
 function Get-GitFetch { & git fetch $args }
 Set-Alias -Name f -Value Get-GitFetch -Force -Option AllScope
+
 function Get-GitCheckout { & git checkout $args }
 Set-Alias -Name co -Value Get-GitCheckout -Force -Option AllScope
+
 function Get-GitBranch { & git branch $args }
 Set-Alias -Name b -Value Get-GitBranch -Force -Option AllScope
+
 function Get-GitRemote { & git remote -v $args }
 Set-Alias -Name r -Value Get-GitRemote -Force -Option AllScope
+
 #>
 
 
 ###====================================================================================###
 #      Azure related
 ###====================================================================================###
+
+function MyAZContext ()
+{
+    $context = Get-AzContext
+
+    if (!$context -or ($context.Subscription.Id -ne $SubID)) 
+    {
+        #Write-Host "SubscriptionId '$SubID' already connected"
+        Write-Host ""
+        Write-Host "======================================================="
+        Write-Host "  No Azure Connection use Alias - azconn - to connect "
+        Write-Host "======================================================="
+        Write-Host ""
+        
+        # Exit script
+        exit
+    } 
+    else 
+    {
+      #$SubID = $context.Subscription.Id
+      Write-Host ""
+      Write-Host "======================================================================="
+      Write-Host "  $SubName in $AADDomain is logged in"
+      Write-Host "======================================================================="
+    }
+}
+Set-Alias chkcontext MyAZContext
+
 function AZConnectSP ()
 {
     <# This function requires the following variables to be defined 
@@ -241,7 +334,8 @@ Set-Alias azauth AZCommConnectSP
 function AZcommLogout () { azlogout "az logout --username $SPAppID" }
 Set-Alias azlogout AZcommLogout
 
-#-- Start and stop Azure VMs - requires that you be authenticated to an Azure session
+
+#-- Start and stop some VMs I use
 function StartDPDK {
   Start-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait
   Start-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait
@@ -283,11 +377,16 @@ Set-Alias k8restart RestartK8S
 
 
 ### Misc utilities
-
-# Handy for getting your ISP assigned IP address.
-function MyIP {
-  # Grab the router IP
+function GetMyIP {
   $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
+  
+  # See it on the screen
   Write-Host ""
-  $RouterIP.ip
+  Write-Host "Current Router/VPN IP: $($RouterIP.ip)"
+  Write-Host ""
+  
+  # Create/Set an Environment variable for later use
+  $env:MyIP  = $($RouterIP.ip)
 }
+# Run function to set variable
+Set-Alias myip GetMyIP
