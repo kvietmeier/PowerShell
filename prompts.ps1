@@ -1,3 +1,6 @@
+### Setting the PS prompt - various examples
+
+
 $PSLogPath = ("{0}{1}\Documents\WindowsPowerShell\log\{2:yyyyMMdd}-{3}.log" -f $env:HOMEDRIVE, $env:HOMEPATH,  (Get-Date), $PID)
 Add-Content -Value "# $(Get-Date) $env:username $env:computername" -Path $PSLogPath
 Add-Content -Value "# $(Get-Location)" -Path $PSLogPath

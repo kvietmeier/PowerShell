@@ -1,4 +1,4 @@
-### PowerShell Scripting Projects
+### PowerShell Profile Examples
 
 ---
 

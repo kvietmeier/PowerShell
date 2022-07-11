@@ -9,7 +9,7 @@
 
 
 # Domain to match
-$dnsDomain = "intel"
+$dnsDomain = "mydomain"
 
 function CheckCorpDomain ($domain) 
 {
