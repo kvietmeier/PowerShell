@@ -12,12 +12,13 @@ Some features:
 - Anything else handy I think of.
   
 Files:  
-DetectVPN.ps1  
-LinuxFunctions.ps1  
-Microsoft.PowerShell_profile.ps1  
-Microsoft.VSCode_profile.ps1  
-UserFunctions.ps1  
-PSColorConfig.ps1
+
+- DetectVPN.ps1  
+- LinuxFunctions.ps1  
+- Microsoft.PowerShell_profile.ps1  
+- Microsoft.VSCode_profile.ps1  
+- UserFunctions.ps1  
+- PSColorConfig.ps1
 
 #### Example
 
