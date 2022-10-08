@@ -4,7 +4,10 @@
   Created By: Karl Vietmeier
     
   Description:
-   Functions amd aliases for my PowerShell profile.
+   * Functions and aliases for my PowerShell profile.
+   * Most of these were grabbed off of various websites and git
+     repos but some are mine
+
 
 #>
 ###====================================================================================###
@@ -30,9 +33,13 @@ function find-file($name) {
 function get-path { ($Env:Path).Split(";") }
 function cd...  { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
+function cdhome { Set-Location $HOME }
 
-function CDTerraform { Set-Location C:\Users\ksvietme\Docs\Projects\GitHub\Terraform\azure }
-Set-Alias cdtform CDTerraform
+function TerraformDir { Set-Location C:\Users\ksvietme\Docs\Projects\GitHub\Terraform\azure}
+Set-Alias tform TerraformDir
+
+function DirTerraform { Set-Location C:\Users\ksvietme\repos\Terraform }
+Set-Alias terradir DirTerraform
 
 ###--- Terminal related
 # Open a Windows Terminal as Admin
@@ -40,54 +47,38 @@ function AdminTerminal { powershell "Start-Process -Verb RunAs cmd.exe '/c start
 Set-Alias tadmin AdminTerminal
 
 ###==== Set colors for dir listings ====#
-# - not working quite right
-# - https://github.com/joonro/Get-ChildItemColor
-# - https://github.com/joonro/Get-ChildItemColor/pull/23/commits/482bb078505e9812ac2a51026f259e6a3f7256a3
-
-function SetColors {
-  
-  # Change color for directories to Blue (works)
-  $GetChildItemColorTable.File['Directory'] = "Blue"
-
-  # Change color for executables to Green (not working)
-  ForEach ($Exe in $GetChildItemColorExtensions['ExecutableList']) 
-  {
-    $GetChildItemColorTable.File[$Exe] = "Green"
+# Configuration for PSColor
+# https://github.com/Davlind/PSColor
+$global:PSColor = @{
+  File = @{
+      Default    = @{ Color = 'White' }
+      Directory  = @{ Color = 'blue'}
+      Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.' } 
+      Code       = @{ Color = 'Magenta'; Pattern = '\.(java|c|cpp|cs|js|css|html|xml|yml|yaml|md|markdown|json)$' }
+      Executable = @{ Color = 'Green'; Pattern = '\.(exe|bat|cmd|sh|py|pl|ps1|psm1|vbs|rb|reg)$' }
+      Text       = @{ Color = 'Yellow'; Pattern = '\.(docx|doc|ppt|pptx|xls|xlsx|vsdx|vsd|pdf|txt|cfg|conf|ini|csv|log|config)$' }
+      Compressed = @{ Color = 'Green'; Pattern = '\.(zip|tar|gz|rar|jar|war|gzip)$' }
   }
-  
-  # Office files (seems to work)
-  $GetChildItemColorExtensions['OfficeList'] = @(
-    ".docx",
-    ".pdf",
-    ".pptx",
-    ".vsdx",
-    ".xlsx"
-  )
-
-  ForEach ($Extension in $GetChildItemColorExtensions['OfficeList']) 
-  {
-    $GetChildItemColorTable.File.Add($Extension, "Yellow")
+  Service = @{
+      Default = @{ Color = 'White' }
+      Running = @{ Color = 'DarkGreen' }
+      Stopped = @{ Color = 'DarkRed' }     
   }
-
-  # Text files/scripts (works)
-  $GetChildItemColorExtensions['PlainText'] = @(
-    ".yaml",
-    ".yml",
-    ".tfvars",
-    ".code-workspace",
-    ".tf"
-  )
-
-  ForEach ($FileType in $GetChildItemColorExtensions['PlainText']) 
-  {
-    $GetChildItemColorTable.File.Add($FileType, "Yellow")
+  Match = @{
+      Default    = @{ Color = 'White' }
+      Path       = @{ Color = 'Cyan'}
+      LineNumber = @{ Color = 'Yellow' }
+      Line       = @{ Color = 'White' }
   }
-  
+NoMatch = @{
+      Default    = @{ Color = 'White' }
+      Path       = @{ Color = 'Cyan'}
+      LineNumber = @{ Color = 'Yellow' }
+      Line       = @{ Color = 'White' }
+  }
+}
+###==== End Set colors for dir listings ====#
 
-}  # End Color definitions
-
-Set-Alias mycolors SetColors
-SetColors
 
 Function lock
 {
@@ -153,6 +144,7 @@ function prompt
 #     Process management
 ###====================================================================================###
 function pstree {
+  # Works like "ps -aux"
 	$ProcessesById = @{}
 	foreach ($Process in (Get-WMIObject -Class Win32_Process)) {
 		$ProcessesById[$Process.ProcessId] = $Process
@@ -198,6 +190,14 @@ function pstree {
 		Show-ProcessTree $Process.ProcessId 0
 	}
 }
+
+
+function ListGUIApps {
+  Get-Process | Where-Object {$_.mainWindowTitle} | Format-Table Id, Name, mainWindowtitle -AutoSize
+}
+Set-Alias -Name listapps -Value ListGUIApps
+
+
 
 ###====================================================================================###
 #      Misc Utilities
@@ -336,11 +336,15 @@ Set-Alias azlogout AZcommLogout
 
 
 #-- Start and stop some VMs I use
-function StartDPDK {
-  Start-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait
-  Start-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait
+function StartTools {
+  Start-AzVM -ResourceGroupName "HubInfrastructure-WestUS2" -Name "linuxtools" -NoWait
 }
-Set-Alias dpdkstart StartDPDK
+Set-Alias stools StartTools
+
+function StopTools {
+  Stop-AzVM -ResourceGroupName "HubInfrastructure-WestUS2" -Name "linuxtools" -NoWait
+}
+Set-Alias stptools StopTools
 
 function StopDPDK {
   Stop-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait -Force

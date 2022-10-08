@@ -19,3 +19,22 @@ Microsoft.VSCode_profile.ps1
 UserFunctions.ps1  
 PSColorConfig.ps1
 
+#### Example
+
+Get your router IP:  
+
+~~~powershell
+function GetMyIP {
+  $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
+  
+  # See it on the screen
+  Write-Host ""
+  Write-Host "Current Router/VPN IP: $($RouterIP.ip)"
+  Write-Host ""
+  
+  # Create/Set an Environment variable for later use
+  $env:MyIP  = $($RouterIP.ip)
+}
+# Run function to set variable
+Set-Alias myip GetMyIP
+~~~
