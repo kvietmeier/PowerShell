@@ -55,8 +55,6 @@ elseif (Test-Path -Path $TFDlbin -PathType Leaf) {
 }
 
 
-#Set-Location $TFExtractDir
-
 # Does the binary already exist
 if (!(Test-Path -Path $TFTargetbin -PathType Leaf))
 {
@@ -69,7 +67,6 @@ elseif (Test-Path -Path $TFTargetbin -PathType Leaf) {
   Write-Host "Terraform binary already in BinDir - Installing new Terraform binary"
   Move-Item -Path $TFDlbin -Destination $TFTargetbin -Force
 }
-
 
 # Cleanup the download
 Remove-Item $TFZip
