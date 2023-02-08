@@ -4,7 +4,6 @@
   
   Purpose:
     Download and install/upgrade Terraform
-    Reference: Download and follow install instructions:
   
   Assumes:
     * You want to use C:\Temp as a target
