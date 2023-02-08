@@ -41,7 +41,7 @@ if (!(Test-Path $DownloadDir))
   #$removeDir = "False" # We created it, so remove it afterward
 }
 
-# Grab and expand Terraform
+# Grab and expand Terraform I'm just overwriting existing right now.
 if (!(Test-Path -Path $TFDlbin -PathType Leaf))
 {
   Write-Host "No Terraform binary in DowloadDir - Extracting new Terraform binary"
