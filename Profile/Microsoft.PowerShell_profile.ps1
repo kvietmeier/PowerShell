@@ -8,7 +8,8 @@
      * Detect VPN status and set proxies if required
      * Create a bunch of useful "Linux like" aliases.
      * Functions, aliases, and confidential variables are sourced from external files
-     * Ste the proxy in .gitconfig
+     * Set the proxy in .gitconfig
+     * Set Terraform env: variables
 
     To Do:
 
@@ -17,6 +18,7 @@
 
 # Import some Modules
 Import-Module Get-ChildItemColor
+Import-Module PSColor
 #Import-Module posh-git
 
 # Run from the location of the script so I don't need full path
@@ -27,14 +29,16 @@ Set-Location $PSscriptroot
 . 'C:\.info\miscinfo.ps1'
 
 # Functions and Aliases
-. '.\UserFunctions.ps1'
-. '.\LinuxFunctions.ps1'
-. '.\DetectVPN.ps1'
+. '.\UserFunctions.ps1'     # Windows functions/aliases
+. '.\LinuxFunctions.ps1'    # "Linux like" functions/aliases
+. '.\DetectVPN.ps1'         # Is the VPN up?
+. '.\kubecompletion.ps1'    # Kubernetes command completion
 
 # So we know where the .gitconfig file lives
 $GitPath = 'C:\Users\ksvietme\.gitconfig'
 
 # Safe way to load variables from another file.
+# Never quite got this working
 #$CompanyData = Join-Path -Path $PSscriptroot -ChildPath CompanyData.psd1
 #if ( Test-Path -Path $CompanyData ) { Import-PowerShellDataFile -Path $CompanyData }
 
@@ -58,15 +62,15 @@ $MaximumHistoryCount = 10000
 # Produce UTF-8 by default
 $PSDefaultParameterValues["Out-File:Encoding"]="utf8"
 
-# Show selection menu for tab
-#Set-PSReadlineKeyHandler -Chord Tab -Function MenuComplete
+# Show selection menu for tab - handy - might get irritating
+Set-PSReadlineKeyHandler -Chord Tab -Function MenuComplete
 
 # Windows PoshGit w/PowerShell
 #. (Resolve-Path "$env:LOCALAPPDATA\GitHub\shell.ps1")
 #. $env:github_posh_git\profile.example.ps1
 
 # Force a starting directory - overrides the Windows Terminal setting
-$StartDir = join-path -path $env:HOMEPATH -childpath "Docs\Projects"
+$StartDir = join-path -path $env:HOMEPATH -childpath "repos"
 Set-Location $StartDir
 
 ### Set some global environment variables
@@ -76,8 +80,6 @@ $env:ARM_SUBSCRIPTION_ID ="$TFM_SubID"
 $env:ARM_CLIENT_ID       ="$TFM_AppID"
 $env:ARM_CLIENT_SECRET   ="$TFM_AppSecret"
 
-# Set colors (call function in UserFunctions.ps1)
-#Set-Colors
 
 ###====================================================================================###
 #      VPN detection and setting proxies
@@ -179,3 +181,4 @@ if (($vpnstatus -eq "True") -or ($activeNetworkType -eq "DomainAuthenticated"))
     Write-Host ""
 
 }
+

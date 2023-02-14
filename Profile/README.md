@@ -6,9 +6,10 @@ My PowerShell Profile and include files - Use at your own risk.
 Some features:  
 
 - Detect VPN and set/unset the system proxies and correct info for Vagrant and git.
-- A config block for the PSColor module thta will colorize directory listings.
+- A config block for the PSColor module that will colorize directory listings.
 - Misc functions/aliases to create a few "Linux like" CLI tools.
 - Some Azure cli aliases to authenticate to a tenant and start/stop VMs.
+- A bunch of Kubernetes aliases/functions I scrounged.
 - Anything else handy I think of.
   
 Files:  
@@ -19,8 +20,10 @@ Files:
 - Microsoft.VSCode_profile.ps1  
 - UserFunctions.ps1  
 - PSColorConfig.ps1
+- kubecompletion.ps1
+- kubectl_aliases.ps1
 
-#### Example
+#### Examples
 
 Get your router IP:  
 
@@ -38,4 +41,37 @@ function GetMyIP {
 }
 # Run function to set variable
 Set-Alias myip GetMyIP
+~~~
+
+Start and stop some infrastructure VMs:
+
+~~~powershell
+function StartCoreVMs {
+  Start-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
+  Start-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
+  Start-AzVM -ResourceGroupName "$VMGroup" "labnode-1098" -NoWait
+}
+Set-Alias stcore StartCoreVMs
+
+function StopCoreVMs {
+  Stop-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "$VMGroup" "labnode-1098" -NoWait -Force
+}
+Set-Alias stpcore StopCoreVMs
+~~~
+
+Login and out of Azure:
+
+~~~powershell
+function AZCommConnectSP () {
+  az login --service-principal `
+   --username $SPAppID `
+   --password $SPSecret `
+   --tenant $TenantID
+}
+Set-Alias azlogin AZCommConnectSP
+
+function AZcommLogout () { azlogout "az logout --username $SPAppID" }
+Set-Alias azlogout AZcommLogout
 ~~~

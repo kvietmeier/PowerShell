@@ -35,13 +35,79 @@ function cd...  { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
 function cdhome { Set-Location $HOME }
 
-function TerraformDir { Set-Location C:\Users\ksvietme\Docs\Projects\GitHub\Terraform\azure}
+function TerraformDir { Set-Location C:\Users\ksvietme\repos\Terraform\Azure}
 Set-Alias tform TerraformDir
 
-function DirTerraform { Set-Location C:\Users\ksvietme\repos\Terraform }
-Set-Alias terradir DirTerraform
+function AKS2Dir { Set-Location C:\Users\ksvietme\repos\Terraform\azure\AKS\aks-2}
+Set-Alias aks2 AKS2Dir
 
+function AKSDir { Set-Location C:\Users\ksvietme\repos\Terraform\azure\AKS\aks-1}
+Set-Alias aks1 AKSDir
+
+function AKSDir { Set-Location C:\Users\ksvietme\repos\Terraform\azure\AKS\aks-billrun}
+Set-Alias billrun AKSDir
+
+function AzureDir { Set-Location C:\Users\ksvietme\repos\Terraform\azure}
+Set-Alias azuretf AzureDir
+
+function CDRepos { Set-Location C:\Users\ksvietme\repos\ }
+Set-Alias repos CDRepos
+
+###--- Apps
+function explore { explorer .  }
+
+function tf { terraform }
+
+function tfaks2([string]$action='apply', [string]$approve='-auto-approve', [string]$var_file='.\aks2-terraform.tfvars') {
+  terraform $action $approve -var-file=$var_file
+}
+
+function FixHelm {
+  # Need this for a Helm/AKS issue
+  # https://github.com/terraform-aws-modules/terraform-aws-eks/issues/1234
+  [Environment]::SetEnvironmentVariable("KUBE_CONFIG_PATH", "~/.kube/config") 
+}
+
+# WSL still has clock issues:
+function FixWSLClock { wsl.exe -d Ubuntu-20.04 -u root -- ntpdate time.windows.com }
+Set-Alias hwclock FixWSLClock
+
+function VSCodeInsiders {
+    Param($file)
+    & 'C:\Users\ksvietme\AppData\Local\Programs\Microsoft VS Code Insiders\Code - Insiders.exe' $file
+}
+Set-Alias code VSCodeInsiders
+
+# Lock Screen
+Function lock
+{
+ $signature = @"
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool LockWorkStation();
+"@
+    $LockWorkStation = Add-Type -memberDefinition $signature -name "Win32LockWorkStation" -namespace Win32Functions -passthru
+
+    $LockWorkStation::LockWorkStation()|Out-Null
+}
+
+
+# Laptop/system model and serial number.
+Function Get-Model {(Get-WmiObject -Class:Win32_ComputerSystem).Model}
+Set-Alias GModel Get-Model
+
+Function Get-SerialNumber {(Get-WmiObject -Class:Win32_BIOS).SerialNumber}
+Set-Alias GSer Get-SerialNumber 
+
+#function alias {Get-Alias | Format-Table -Property Name, Options -Autosize}
+
+function WindowsBuild { systeminfo | Select-String "^OS Name","^OS Version" }
+Set-Alias winbuild WindowsBuild
+
+
+###====================================================================================###
 ###--- Terminal related
+###====================================================================================###
+
 # Open a Windows Terminal as Admin
 function AdminTerminal { powershell "Start-Process -Verb RunAs cmd.exe '/c start wt.exe  -p ""Windows PowerShell""'" }
 Set-Alias tadmin AdminTerminal
@@ -79,38 +145,63 @@ NoMatch = @{
 }
 ###==== End Set colors for dir listings ====#
 
+###==== Make history act like bash history - sort of ====#
+<# 
+  https://github.com/PowerShell/PowerShell/issues/12061
+  This will format (Get-PSReadLineOption).HistorySavePath so that the multiline commands
+  (like when you paste in a function) appear as a single function. It will then allow you 
+  to search across your history. 
+  You can do something like Select -Expand Command once
+  you find what you are looking for and itll display the whole command.
+#>
+function Format-PSReadLineHistory {
+  $historyList = [System.Collections.ArrayList]::new()
+  $history = $(Get-Content (Get-PSReadLineOption).HistorySavePath)
+  $i = 0
+  while( $i -lt $($history.Length - 1) ){
+      # If it ends in a backtic then the command continues onto the next line
+      if( $history[$i] -match "``$" ){
+          $commands = [System.Collections.ArrayList]::new()
+          $commands.Add($history[$i].Replace('`','')) | Out-Null
+          $i++
+          while($history[$i] -match "``$"){
+              $commands.Add($history[$i].Replace('`','')) | Out-Null 
+              $i++       
+          }
+          $commands.Add($history[$i].Replace('`','')) | Out-Null
+          $i++
+          # Now we join it all together with newline characters
+          $command = $commands -join "`n"
+          $historyList.Add([pscustomobject]@{
+          Number = $i + 1
+              Command = $command
+        }) | Out-Null
+      } else {
+          $historyList.Add([pscustomobject]@{
+          Number = $i + 1
+              Command = $history[$i]
+        }) | Out-Null
+          $i++  
+      }                           
+  }
+  return $historyList
+} 
 
-Function lock
-{
- # Lock Screen
- $signature = @"
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool LockWorkStation();
-"@
-    $LockWorkStation = Add-Type -memberDefinition $signature -name "Win32LockWorkStation" -namespace Win32Functions -passthru
-
-    $LockWorkStation::LockWorkStation()|Out-Null
+function Get-PSReadLineHistory {
+  [CmdletBinding()]
+  [Alias('gph')]
+  param()
+  Format-PSReadLineHistory | Format-Table -HideTableHeaders -AutoSize
 }
+Set-Alias hist Get-PSReadLineHistory
 
-###--- Apps
-function explore {
-    explorer .
+function Find-PSReadLineHistory {
+  [CmdletBinding()]
+  [Alias('fph')]
+  param([parameter(Position=0)]$keyword)
+  Format-PSReadLineHistory | Where-Object { $($_.Command.Replace('`n','; ')) -match $keyword } | Format-Table -HideTableHeaders -AutoSize 
 }
-
-function VSCodeInsiders {
-    Param($file)
-    & 'C:\Users\ksvietme\AppData\Local\Programs\Microsoft VS Code Insiders\Code - Insiders.exe' $file
-}
-Set-Alias code VSCodeInsiders
-
-# Laptop/system model and serial number.
-Function Get-Model {(Get-WmiObject -Class:Win32_ComputerSystem).Model}
-Set-Alias GModel Get-Model
-
-Function Get-SerialNumber {(Get-WmiObject -Class:Win32_BIOS).SerialNumber}
-Set-Alias GSer Get-SerialNumber 
-
-function alias {Get-Alias | Format-Table -Property Name, Options -Autosize}
+Set-Alias searchhist Get-PSReadLineHistory
 
 
 ###====================================================================================###
@@ -224,6 +315,7 @@ function gpush {
 function Get-GitTree { & git log --graph --oneline --decorate $args }
 Set-Alias -Name glog -Value Get-GitTree -Force -Option AllScope
 
+
 <###  More GitHub aliases - uncomment to use. 
 function Get-GitStatus { 
   & git status -sb $args
@@ -256,10 +348,74 @@ Set-Alias -Name r -Value Get-GitRemote -Force -Option AllScope
 
 #>
 
+###====================================================================================###
+#      Terraform related
+###====================================================================================###
+
+function tfapply {
+  # Run an apply using the tfvars file in the current folder
+  #Param($message)
+  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
+  terraform apply --auto-approve -var-file="$VarFile"
+}
+
+function tfdestroy {
+  # Run a destroy using the tfvars file in the currenmt folder 
+  #Param($message)
+  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
+  terraform destroy --auto-approve -var-file="$VarFile"
+}
+
+function tfshow {
+  # 
+  terraform show
+}
+
+
 
 ###====================================================================================###
-#      Azure related
+#      Kubernetes related
 ###====================================================================================###
+
+function SetKubePath { [Environment]::SetEnvironmentVariable("KUBE_CONFIG_PATH", "~/.kube/config") }
+Set-Alias k8spath SetKubePath
+
+# Bunch of Aliases
+# https://manjit28.medium.com/powershell-define-shortcut-alias-for-common-kubernetes-commands-1c006d68cce2
+Set-Alias -Name k -Value kubectl
+
+function GetPods([string]$namespace='kube-system') { kubectl get pods -n $namespace }
+Set-Alias -Name kgp -Value GetPods
+ 
+function GetPods() { kubectl get pods -A }
+Set-Alias -Name kgpa -Value GetPods
+
+function GetPodsWide([string]$namespace='kube-system') { kubectl get pods -n $namespace -o wide }
+Set-Alias -Name kgpw -Value GetPods
+
+function GetPods() { kubectl get pods -A -o wide}
+Set-Alias -Name kgpwa -Value GetPods
+
+function GetAll([string]$namespace='kube-system') { kubectl get all -n $namespace }
+Set-Alias -Name kgall -Value GetAll
+
+function GetNodes() { kubectl get nodes -o wide }
+Set-Alias -Name kgn -Value GetNodes
+
+function DescribePod([string]$container, [string]$namespace='kube-system') { kubectl describe po $container -n $namespace }
+Set-Alias -Name kdp -Value DescribePod
+
+function GetLogs([string]$container, [string]$namespace='kube-system') { kubectl logs pod/$container -n $namespace }
+Set-Alias -Name klp -Value GetLogs
+
+function ApplyYaml([string]$filename, [string]$namespace='kube-system') { kubectl apply -f $filename -n $namespace }
+Set-Alias -Name kaf -Value ApplyYaml
+
+#function ExecContainerShell([string]$container, [string]$namespace='default') { kubectl exec -it $container -n $namespace — sh }
+#Set-Alias -Name kexec -Value ExecContainerShell
+
+###====================================================================================###
+###                                  Azure related                                     ###
 
 function MyAZContext ()
 {
@@ -299,6 +455,23 @@ function AZConnectSP ()
 
     $context = Get-AzContext
 
+    <# Could check this too
+    $AccessToken = Get-AzAccessToken -ErrorAction SilentlyContinue
+    if (!$AccessToken) {
+      Write-Host "Login needed"
+      try {
+          Login-AzAccount -ErrorAction stop > Out-Null
+      }
+      catch
+      {
+          throw "Could not login to Azure"
+      }
+      } else {
+          Write-Host "Already logged in"
+    }
+    #>
+
+    
     # If I'm not connected/authorized, connect with Service Principle
     if (!$context -or ($context.Subscription.Id -ne $SubID)) 
     {
@@ -329,58 +502,54 @@ function AZCommConnectSP () {
    --password $SPSecret `
    --tenant $TenantID
 }
-Set-Alias azauth AZCommConnectSP
+Set-Alias azlogin AZCommConnectSP
 
 function AZcommLogout () { azlogout "az logout --username $SPAppID" }
 Set-Alias azlogout AZcommLogout
 
+### Add later
+# az serial-console connect -g "CoreVMs" -n "labnode-1098"
 
 #-- Start and stop some VMs I use
-function StartTools {
-  Start-AzVM -ResourceGroupName "HubInfrastructure-WestUS2" -Name "linuxtools" -NoWait
+$VMGroup = "CoreVMs"
+
+function StartCoreVMs {
+  Start-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
+  Start-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
+  Start-AzVM -ResourceGroupName "$VMGroup" "labnode-1098" -NoWait
 }
-Set-Alias stools StartTools
+Set-Alias stcore StartCoreVMs
 
-function StopTools {
-  Stop-AzVM -ResourceGroupName "HubInfrastructure-WestUS2" -Name "linuxtools" -NoWait
+function StopCoreVMs {
+  Stop-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "$VMGroup" "labnode-1098" -NoWait -Force
 }
-Set-Alias stptools StopTools
+Set-Alias stpcore StopCoreVMs
 
-function StopDPDK {
-  Stop-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait -Force
-  Stop-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait -Force
+# Azure Serial Consoles
+function ToolsCon { az serial-console connect -g "$VMGroup" -n "linuxtools" }
+function LoadgenCon { az serial-console connect -g "$VMGroup" -n "labnode-1098" }
+
+
+# Azure Info
+function ListAllRegions () {
+  # Print list of available regions
+  az account list-locations --query "[].{Name:name,region:regionalDisplayName,DisplayName:displayName}" -o table 
 }
-Set-Alias dpdkstop StopDPDK
+Set-Alias azregions ListAllRegions
 
-function ReStartDPDK {
-  Restart-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk01" -NoWait
-  Restart-AzVM -ResourceGroupName "rg-networktesting" -Name "dpdk02" -NoWait
+function ListMyRegions () {
+  # Print list of available regions
+  Get-AzLocation | Select-Object location,displayname
 }
-Set-Alias dpdkreset ReStartDPDK
-
-function StartK8S {
-  Start-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8smaster-1793" -NoWait
-  Start-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1747" -NoWait
-  Start-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1776" -NoWait
-}
-Set-Alias k8start StartK8S
-
-function StopK8S {
-  Stop-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8smaster-1793" -NoWait
-  Stop-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1747" -NoWait
-  Stop-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1776" -NoWait
-}
-Set-Alias k8stop StopK8S
-
-function RestartK8S {
-  Restart-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8smaster-1793" -NoWait
-  Restart-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1747" -NoWait
-  Restart-AzVM -ResourceGroupName "rg-k8scluster01" -Name "k8sworker-1776" -NoWait
-}
-Set-Alias k8restart RestartK8S
+Set-Alias myregions ListMyRegions
 
 
-### Misc utilities
+
+###====================================================================================###
+###                                 Misc utilities                                     ###
+
 function GetMyIP {
   $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
   

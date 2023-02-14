@@ -58,7 +58,7 @@ function touch($file) {
 	"" | Out-File $file -Encoding ASCII
 }
 
-# "cd -"
+# "cd - not working "
 function cddash {
     if ($args[0] -eq '-') {
         $_pwd = $OLDPWD;

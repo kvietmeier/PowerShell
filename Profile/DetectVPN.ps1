@@ -1,19 +1,16 @@
 ###====================================================================================###
 <#   
   FileName: DetectVPN.ps1
-  Created By: Karl Vietmeier
+  Used By: Karl Vietmeier
     
   Description:
    Detect whether the VPN is up and running or not.
+   
+  This function came from: 
+   https://gallery.technet.microsoft.com/scriptcenter/Test-VPNConnection-Check-36fa4b57
 
 #>
 ###====================================================================================###
-
-
-#=====  Test if VPN is up
-# https://gallery.technet.microsoft.com/scriptcenter/Test-VPNConnection-Check-36fa4b57
-#
-# Move out of profile.ps1, it was making it too big.
 
 
 Function Test-VPNConnection
