@@ -16,7 +16,7 @@
 #return
 
 # What version are we downloading?
-$TFVer       = "1.3.7"
+$TFVer       = "1.3.9"
 $TFUrl       = "https://releases.hashicorp.com/terraform/"
 
 # These can change -  Get username from who is running this
