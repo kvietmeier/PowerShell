@@ -23,6 +23,11 @@ Files:
 - kubecompletion.ps1
 - kubectl_aliases.ps1
 
+#### Useful Document Links
+
+- [Understanding the Six PowerShell Profiles - Scripting Blog (microsoft.com)](https://devblogs.microsoft.com/scripting/understanding-the-six-powershell-profiles/)
+- [about Profiles - PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.1)
+
 #### Examples
 
 Get your router IP:  
@@ -49,14 +54,12 @@ Start and stop some infrastructure VMs:
 function StartCoreVMs {
   Start-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
   Start-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
-  Start-AzVM -ResourceGroupName "$VMGroup" "labnode-1098" -NoWait
 }
 Set-Alias stcore StartCoreVMs
 
 function StopCoreVMs {
   Stop-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait -Force
   Stop-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait -Force
-  Stop-AzVM -ResourceGroupName "$VMGroup" "labnode-1098" -NoWait -Force
 }
 Set-Alias stpcore StopCoreVMs
 ~~~

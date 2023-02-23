@@ -507,8 +507,13 @@ Set-Alias azlogin AZCommConnectSP
 function AZcommLogout () { azlogout "az logout --username $SPAppID" }
 Set-Alias azlogout AZcommLogout
 
-### Add later
-# az serial-console connect -g "CoreVMs" -n "labnode-1098"
+<# 
+### Add Param - $VMname
+function VMCon () {
+  param($VMName)
+  az serial-console connect -g $VMGroup -n $VMName
+}
+#>
 
 #-- Start and stop some VMs I use
 $VMGroup = "CoreVMs"
@@ -516,18 +521,38 @@ $VMGroup = "CoreVMs"
 function StartCoreVMs {
   Start-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
   Start-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
-  Start-AzVM -ResourceGroupName "$VMGroup" "labnode-1098" -NoWait
 }
 Set-Alias stcore StartCoreVMs
+
+function StartTools {
+  Start-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
+}
+Set-Alias stools StartTools
+
+function StartWin {
+  Start-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
+}
+Set-Alias stwin StartWin
 
 function StopCoreVMs {
   Stop-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait -Force
   Stop-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait -Force
-  Stop-AzVM -ResourceGroupName "$VMGroup" "labnode-1098" -NoWait -Force
 }
 Set-Alias stpcore StopCoreVMs
 
+function StopTools {
+  Stop-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
+}
+Set-Alias stptools StopTools
+
+function StopWin {
+  Stop-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
+}
+Set-Alias stpwin StopWin
+
+
 # Azure Serial Consoles
+# To exit: Ctrl + ] and then q
 function ToolsCon { az serial-console connect -g "$VMGroup" -n "linuxtools" }
 function LoadgenCon { az serial-console connect -g "$VMGroup" -n "labnode-1098" }
 
