@@ -152,7 +152,7 @@ NoMatch = @{
   (like when you paste in a function) appear as a single function. It will then allow you 
   to search across your history. 
   You can do something like Select -Expand Command once
-  you find what you are looking for and itll display the whole command.
+  you find what you are looking for and it will display the whole command.
 #>
 function Format-PSReadLineHistory {
   $historyList = [System.Collections.ArrayList]::new()
