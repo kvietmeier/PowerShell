@@ -16,8 +16,12 @@
 #return
 
 # What version are we downloading?
-$TFVer       = "1.3.9"
+$TFVer       = "1.6.6"
 $TFUrl       = "https://releases.hashicorp.com/terraform/"
+
+# Uncomment to get all of the available versions:
+#$TFVersions = Invoke-WebRequest 'https://releases.hashicorp.com/terraform/' -UseBasicParsing
+#$TFVersions.Links.HREF
 
 # These can change -  Get username from who is running this
 # I use a "bin" folder in $PATH for standalone binaries
