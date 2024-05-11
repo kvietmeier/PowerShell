@@ -35,9 +35,6 @@ function cd...  { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
 function cdhome { Set-Location $HOME }
 
-function TerraformDir { Set-Location C:\Users\ksvietme\repos\Terraform\Azure}
-Set-Alias tform TerraformDir
-
 function AKS2Dir { Set-Location C:\Users\ksvietme\repos\Terraform\azure\AKS\aks-2}
 Set-Alias aks2 AKS2Dir
 
@@ -57,10 +54,6 @@ Set-Alias repos CDRepos
 function explore { explorer .  }
 
 function tf { terraform }
-
-function tfaks2([string]$action='apply', [string]$approve='-auto-approve', [string]$var_file='.\aks2-terraform.tfvars') {
-  terraform $action $approve -var-file=$var_file
-}
 
 function FixHelm {
   # Need this for a Helm/AKS issue
@@ -102,6 +95,11 @@ Set-Alias GSer Get-SerialNumber
 
 function WindowsBuild { systeminfo | Select-String "^OS Name","^OS Version" }
 Set-Alias winbuild WindowsBuild
+
+#function SystemInfo { 
+#  $SysDetails = (Get-ComputerInfo) }
+#
+#Set-Alias SysDet SystemInfo
 
 
 ###====================================================================================###
@@ -152,7 +150,7 @@ NoMatch = @{
   (like when you paste in a function) appear as a single function. It will then allow you 
   to search across your history. 
   You can do something like Select -Expand Command once
-  you find what you are looking for and it will display the whole command.
+  you find what you are looking for and itll display the whole command.
 #>
 function Format-PSReadLineHistory {
   $historyList = [System.Collections.ArrayList]::new()
@@ -354,16 +352,20 @@ Set-Alias -Name r -Value Get-GitRemote -Force -Option AllScope
 
 function tfapply {
   # Run an apply using the tfvars file in the current folder
-  #Param($message)
   $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
   terraform apply --auto-approve -var-file="$VarFile"
 }
 
 function tfdestroy {
-  # Run a destroy using the tfvars file in the currenmt folder 
-  #Param($message)
+  # Run a destroy using the tfvars file in the current folder 
   $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
   terraform destroy --auto-approve -var-file="$VarFile"
+}
+
+function tfplan {
+  # Run plan using the tfvars file in the current folder
+  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
+  terraform plan -var-file="$VarFile"
 }
 
 function tfshow {
@@ -371,6 +373,12 @@ function tfshow {
   terraform show
 }
 
+function TerraformDir { Set-Location C:\Users\ksvietme\repos\Terraform\Azure}
+Set-Alias tform TerraformDir
+
+function tfaks2([string]$action='apply', [string]$approve='-auto-approve', [string]$var_file='.\aks2-terraform.tfvars') {
+  terraform $action $approve -var-file=$var_file
+}
 
 
 ###====================================================================================###
@@ -414,9 +422,31 @@ Set-Alias -Name kaf -Value ApplyYaml
 #function ExecContainerShell([string]$container, [string]$namespace='default') { kubectl exec -it $container -n $namespace — sh }
 #Set-Alias -Name kexec -Value ExecContainerShell
 
-###====================================================================================###
-###                                  Azure related                                     ###
+###==========================================================================================###
+###                                      Azure Related                                       ###
+###==========================================================================================###
 
+# Tab Completion for AZ CLI
+Register-ArgumentCompleter -Native -CommandName az -ScriptBlock {
+  param($commandName, $wordToComplete, $cursorPosition)
+  $completion_file = New-TemporaryFile
+  $env:ARGCOMPLETE_USE_TEMPFILES = 1
+  $env:_ARGCOMPLETE_STDOUT_FILENAME = $completion_file
+  $env:COMP_LINE = $wordToComplete
+  $env:COMP_POINT = $cursorPosition
+  $env:_ARGCOMPLETE = 1
+  $env:_ARGCOMPLETE_SUPPRESS_SPACE = 0
+  $env:_ARGCOMPLETE_IFS = "`n"
+  $env:_ARGCOMPLETE_SHELL = 'powershell'
+  az 2>&1 | Out-Null
+  Get-Content $completion_file | Sort-Object | ForEach-Object {
+      [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_)
+  }
+  Remove-Item $completion_file, Env:\_ARGCOMPLETE_STDOUT_FILENAME, Env:\ARGCOMPLETE_USE_TEMPFILES, Env:\COMP_LINE, Env:\COMP_POINT, Env:\_ARGCOMPLETE, Env:\_ARGCOMPLETE_SUPPRESS_SPACE, Env:\_ARGCOMPLETE_IFS, Env:\_ARGCOMPLETE_SHELL
+}
+
+
+###--- Authentication 
 function MyAZContext ()
 {
     $context = Get-AzContext
@@ -442,7 +472,7 @@ function MyAZContext ()
       Write-Host "======================================================================="
     }
 }
-Set-Alias chkcontext MyAZContext
+Set-Alias azcontext MyAZContext
 
 function AZConnectSP ()
 {
@@ -495,69 +525,131 @@ function AZConnectSP ()
 Set-Alias azconn AZConnectSP
 Set-Alias azdconn Disconnect-AzAccount
 
-# Do this with the Azure CLI
-function AZCommConnectSP () {
+
+#-- Do this with the Azure CLI
+function AZ_CLI_ConnectSP () {
+  az account set --subscription $SubID
   az login --service-principal `
    --username $SPAppID `
    --password $SPSecret `
    --tenant $TenantID
 }
-Set-Alias azlogin AZCommConnectSP
+Set-Alias azlogin AZ_CLI_ConnectSP
 
-function AZcommLogout () { azlogout "az logout --username $SPAppID" }
-Set-Alias azlogout AZcommLogout
+function AZ_CLI_Logout () { az logout --username $SPAppID }
+Set-Alias azlogout AZ_CLI_Logout
 
-<# 
-### Add Param - $VMname
-function VMCon () {
-  param($VMName)
-  az serial-console connect -g $VMGroup -n $VMName
-}
-#>
+function AZ_CLI_ShowAcct () { az account show --output table }
+Set-Alias azshow AZ_CLI_ShowAcct
+
+
 
 #-- Start and stop some VMs I use
-$VMGroup = "CoreVMs"
+$CoreRG = "CoreVMs"
+$VoltRG = "TMP-VoltTesting"
 
 function StartCoreVMs {
-  Start-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
-  Start-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
+  Start-AzVM -ResourceGroupName "$CoreRG" "linuxtools" -NoWait
+  Start-AzVM -ResourceGroupName "$CoreRG" "WinServer" -NoWait
 }
 Set-Alias stcore StartCoreVMs
 
+#--- VoltDB nodes
+function StartVolt {
+  Start-AzVM -ResourceGroupName "$VoltPG" "voltnode-01" -NoWait
+  Start-AzVM -ResourceGroupName "$VoltPG" "voltnode-02" -NoWait
+}
+Set-Alias stvolt StartVolt
+
+function StopVoltVMs {
+  Stop-AzVM -ResourceGroupName "$VoltPG" "voltnode-01" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "$VoltPG" "voltnode-02" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "$VoltPG" "voltnode-03" -NoWait -Force
+}
+Set-Alias stpvolt StopVoltVMs
+#---
+
 function StartTools {
-  Start-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
+  Start-AzVM -ResourceGroupName "$CoreRG" "linuxtools" -NoWait 
 }
 Set-Alias stools StartTools
 
 function StartWin {
-  Start-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
+  Start-AzVM -ResourceGroupName "$CoreRG" "WinServer" -NoWait
 }
 Set-Alias stwin StartWin
 
 function StopCoreVMs {
-  Stop-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait -Force
-  Stop-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "$CoreRG" "linuxtools" -NoWait -Force
+  Stop-AzVM -ResourceGroupName "$CoreRG" "WinServer" -NoWait -Force
 }
 Set-Alias stpcore StopCoreVMs
 
 function StopTools {
-  Stop-AzVM -ResourceGroupName "$VMGroup" "linuxtools" -NoWait
+  Stop-AzVM -ResourceGroupName "$CoreRG" "linuxtools" -NoWait
 }
 Set-Alias stptools StopTools
 
 function StopWin {
-  Stop-AzVM -ResourceGroupName "$VMGroup" "WinServer" -NoWait
+  Stop-AzVM -ResourceGroupName "$CoreRG" "WinServer" -NoWait
 }
 Set-Alias stpwin StopWin
 
+###  Volt functions - build/destroy
+# Run the create VM script
+function BuildNVME {
+  C:\Users\ksvietme\repos\AzureLabs\scripts\MultiVM_NVMe_DBCluster.ps1
+}
+Set-Alias bnvme BuildNVME
 
-# Azure Serial Consoles
+function BuildSCSI {
+  C:\Users\ksvietme\repos\AzureLabs\scripts\MultiVM_SCSI_DBCluster.ps1
+}
+Set-Alias bscsi BuildSCSI
+
+# Delete the PG
+function DelNVMERG {
+  Remove-AzResourceGroup -Name "TMP-VoltTesting" -Force
+}
+Set-Alias dnvme DelNVMERG
+
+function DelSCSIRG {
+  Remove-AzResourceGroup -Name "SCSI-VoltTesting" -Force
+}
+Set-Alias dscsi DelSCSIRG
+
+# Serial Consoles
 # To exit: Ctrl + ] and then q
-function ToolsCon { az serial-console connect -g "$VMGroup" -n "linuxtools" }
-function LoadgenCon { az serial-console connect -g "$VMGroup" -n "labnode-1098" }
+function ToolsCon { az serial-console connect -g "$CoreRG" -n "linuxtools" }
+function Volt1Con { az serial-console connect -g "$VoltRG" -n "vdb-01" }
+function Volt2Con { az serial-console connect -g "$VoltRG" -n "vdb-02" }
+function Volt3Con { az serial-console connect -g "$VoltRG" -n "vdb-03" }
+function Volt4Con { az serial-console connect -g "$VoltRG" -n "vdb-04" }
+function Volt4Con { az serial-console connect -g "$VoltRG" -n "vdb-05" }
+function Volt4Con { az serial-console connect -g "$VoltRG" -n "vdb-06" }
+function Volt4Con { az serial-console connect -g "$VoltRG" -n "vdb-07" }
+function Volt4Con { az serial-console connect -g "$VoltRG" -n "vdb-08" }
+
+function VMCon () {
+  # usage: VMCon <vmname>
+  param($VMName)
+  az serial-console connect -g $VoltRG -n $VMName
+}
+
+###---  End Volt
+
+###--- Misc Azure Stuff
+###--- Azure Serial Consoles
+<# 
+### Add Params - $RG and $VMname
+function VMCon () {
+  param($RG, $VMName)
+  az serial-console connect -g $RG -n $VMName
+}
+#>
 
 
-# Azure Info
+### Azure Info
 function ListAllRegions () {
   # Print list of available regions
   az account list-locations --query "[].{Name:name,region:regionalDisplayName,DisplayName:displayName}" -o table 
@@ -574,6 +666,7 @@ Set-Alias myregions ListMyRegions
 
 ###====================================================================================###
 ###                                 Misc utilities                                     ###
+###====================================================================================###
 
 function GetMyIP {
   $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
@@ -588,3 +681,21 @@ function GetMyIP {
 }
 # Run function to set variable
 Set-Alias myip GetMyIP
+
+<#  Update my NSG after an IP change
+function SetNSGIP {
+  # Text to match - MY_IP
+  #  "47.144.121.35",      # <MY_IP>
+  
+  # Text to replace
+  #  "47.144.121.35",      # <MY_IP>
+  #   ^^^^^^^^^^^^^ 
+
+  $regEx = ".*#proxy.+"
+  # Replace with:
+  $replacement = $($RouterIP.ip)
+    
+  $TFVarPath = 'C:\Users\ksvietme\repos\Terraform\Azure\CoreInfra\nsg\nsg.terraform.tfvars'
+  (Get-Content -Path $TFVarPath) | Foreach-Object -Process {  $_ -replace $regEx, $replacement  } | Set-Content -Path $TFVarPath
+
+} #>

@@ -16,9 +16,7 @@
 #>
 ###====================================================================================###
 
-###--- Import some Modules
-
-# Need these for prompt/dir listing
+# Import some Modules
 Import-Module Get-ChildItemColor
 Import-Module PSColor
 #Import-Module posh-git
@@ -28,7 +26,7 @@ Set-Location $PSscriptroot
 
 ### Source files with functions and aliases
 # Confidential variables
-. 'C:\somefile_somewhere.ps1'
+. 'C:\.info\miscinfo.ps1'
 
 # Functions and Aliases
 . '.\UserFunctions.ps1'     # Windows functions/aliases
@@ -37,7 +35,8 @@ Set-Location $PSscriptroot
 . '.\kubecompletion.ps1'    # Kubernetes command completion
 
 # So we know where the .gitconfig file lives
-$GitPath = 'C:\Users\user\.gitconfig'
+$GitPath = 'C:\Users\ksvietme\.gitconfig'
+
 
 # Safe way to load variables from another file.
 # Never quite got this working
