@@ -15,7 +15,7 @@
 #           Make sure there are no spaces in no_proxy
 #   Optional Proxy - "proxy-chain"
 
-$http_proxy='http://proxy-us.intel.com:911'
-$https_proxy='http://proxy-us.intel.com:911'
-$socks_proxy='http://proxy-us.intel.com:1080'
-$no_proxy='127.0.0.1,172.16.0.0/24,172.10.0.0/24,*.intel.com'
+$http_proxy='<myproxy1>'
+$https_proxy='<myproxy2>'
+$socks_proxy='<myproxy3>'
+$no_proxy='127.0.0.1,172.16.0.0/24,172.10.0.0/24'

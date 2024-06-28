@@ -18,8 +18,10 @@
 ###====================================================================================###
 
 function uptime {
-	Get-WmiObject win32_operatingsystem | Select-Object csname, @{LABEL='LastBootUpTime';
-	EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}}
+    # Query the win32_operatingsystem WMI class
+    Get-WmiObject win32_operatingsystem | 
+    # Select the computer name and convert the last boot-up time to a readable format
+    Select-Object csname, @{LABEL='LastBootUpTime'; EXPRESSION={$_.ConvertToDateTime($_.lastbootuptime)}}
 }
 
 function find-file($name) {

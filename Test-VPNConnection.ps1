@@ -1,4 +1,9 @@
-﻿Function Test-VPNConnection
+﻿### 
+# Long forgot where I found this but it is handy for checking if a VPN is running so
+# you can do things like set proxies.
+
+
+Function Test-VPNConnection
 {
 <#
 .SYNOPSIS
