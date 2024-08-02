@@ -1,0 +1,119 @@
+﻿
+   - 
+                                                                                                                        
+
+   - 
+   \ 
+                                                                                                                        
+Installed package is not available from any source: Mozilla Maintenance Service
+Installed package is not available from any source: Microsoft 365 - en-us
+Installed package is not available from any source: UBOAT
+Installed package is not available from any source: X1 Search
+Installed package is not available from any source: Microsoft Teams Meeting Add-in for Microsoft Office
+Installed package is not available from any source: Microsoft Update Health Tools
+Installed package is not available from any source: iCloud Outlook
+Installed package is not available from any source: Windows Subsystem for Linux Update
+Installed package is not available from any source: Microsoft Edge Update
+Installed package is not available from any source: Sid Meier's Civilization V
+Installed package is not available from any source: Microsoft Visual C++ 2008 Redistributable - x86 9.0.30729.17
+Exported package requires license agreement to install: Microsoft Teams
+Exported package requires license agreement to install: Zoom Workplace
+Installed package is not available from any source: Oracle Linux 9.1
+Installed package is not available from any source: Netflix
+Installed package is not available from any source: WhatsApp
+Installed package is not available from any source: EasyChat AI
+Installed package is not available from any source: LinkedIn
+Installed package is not available from any source: Prime Video for Windows
+Installed package is not available from any source: Intel┬« Graphics Command Center
+Installed package is not available from any source: ThunderboltTM Control Center
+Installed package is not available from any source: iCloud
+Installed package is not available from any source: Ubuntu 24.04 LTS
+Installed package is not available from any source: Microsoft Clipchamp
+Installed package is not available from any source: Cortana
+Installed package is not available from any source: Microsoft Defender
+Installed package is not available from any source: News
+Installed package is not available from any source: MSN Weather
+Installed package is not available from any source: DirectX
+Installed package is not available from any source: DirectX
+Installed package is not available from any source: Gaming Services
+Installed package is not available from any source: Get Help
+Installed package is not available from any source: Microsoft Tips
+Installed package is not available from any source: HEIF Image Extensions
+Installed package is not available from any source: HEVC Video Extensions from Device Manufacturer
+Installed package is not available from any source: Ink.Handwriting.Main.en-US.1.0
+Installed package is not available from any source: Ink.Handwriting.en-US.1.0
+Installed package is not available from any source: Ink.Handwriting.en-US.1.0
+Installed package is not available from any source: Age of Empires III: Definitive Edition
+Installed package is not available from any source: Microsoft Edge
+Installed package is not available from any source: Microsoft 365 (Office)
+Installed package is not available from any source: Solitaire & Casual Games
+Installed package is not available from any source: Microsoft Sticky Notes
+Installed package is not available from any source: Microsoft .Net Native Framework Package 2.1
+Installed package is not available from any source: Microsoft .Net Native Framework Package 2.1
+Installed package is not available from any source: Microsoft .Net Native Framework Package 2.2
+Installed package is not available from any source: Microsoft .Net Native Framework Package 2.2
+Installed package is not available from any source: Microsoft .Net Native Runtime Package 2.1
+Installed package is not available from any source: Microsoft .Net Native Runtime Package 2.1
+Installed package is not available from any source: Microsoft .Net Native Runtime Package 2.2
+Installed package is not available from any source: Microsoft .Net Native Runtime Package 2.2
+Installed package is not available from any source: OneDrive
+Installed package is not available from any source: Paint
+Installed package is not available from any source: Microsoft People
+Installed package is not available from any source: Power Automate
+Installed package is not available from any source: Raw Image Extension
+Installed package is not available from any source: Snipping Tool
+Installed package is not available from any source: Windows Security
+Installed package is not available from any source: Microsoft Engagement Framework
+Installed package is not available from any source: Microsoft Engagement Framework
+Installed package is not available from any source: Store Experience Host
+Installed package is not available from any source: Microsoft To Do
+Installed package is not available from any source: Microsoft Visual C++ 2012 UWP Desktop Runtime Package
+Installed package is not available from any source: Microsoft Visual C++ 2012 UWP Desktop Runtime Package
+Installed package is not available from any source: Microsoft Visual C++ 2013 UWP Desktop Runtime Package
+Installed package is not available from any source: Microsoft Visual C++ 2013 UWP Desktop Runtime Package
+Installed package is not available from any source: Microsoft Visual C++ Runtime Package
+Installed package is not available from any source: Microsoft Visual C++ Runtime Package
+Installed package is not available from any source: Microsoft Visual C++ 2015 UWP Runtime Package
+Installed package is not available from any source: Microsoft Visual C++ 2015 UWP Runtime Package
+Installed package is not available from any source: Microsoft Visual C++ 2015 UWP Runtime Package
+Installed package is not available from any source: VP9 Video Extensions
+Installed package is not available from any source: Web Media Extensions
+Installed package is not available from any source: Webp Image Extensions
+Installed package is not available from any source: Microsoft Photos
+Installed package is not available from any source: Windows Clock
+Installed package is not available from any source: WindowsAppRuntime.1.1
+Installed package is not available from any source: WindowsAppRuntime.1.1
+Installed package is not available from any source: WindowsAppRuntime.1.2
+Installed package is not available from any source: WindowsAppRuntime.1.2
+Installed package is not available from any source: WindowsAppRuntime.1.3
+Installed package is not available from any source: WindowsAppRuntime.1.3
+Installed package is not available from any source: WindowsAppRuntime.1.4
+Installed package is not available from any source: WindowsAppRuntime.1.4
+Installed package is not available from any source: WindowsAppRuntime.1.5
+Installed package is not available from any source: WindowsAppRuntime.1.5
+Installed package is not available from any source: Windows Calculator
+Installed package is not available from any source: Windows Camera
+Installed package is not available from any source: Feedback Hub
+Installed package is not available from any source: Windows Maps
+Installed package is not available from any source: Windows Notepad
+Installed package is not available from any source: Windows Scan
+Installed package is not available from any source: Windows Sound Recorder
+Installed package is not available from any source: Microsoft Store
+Exported package requires license agreement to install: Windows Terminal Preview
+Installed package is not available from any source: Windows Package Manager Source (winget) V2
+Installed package is not available from any source: Xbox TCUI
+Installed package is not available from any source: Xbox Game Bar Plugin
+Installed package is not available from any source: Game Bar
+Installed package is not available from any source: Xbox Identity Provider
+Installed package is not available from any source: Xbox Game Speech Window
+Installed package is not available from any source: Phone Link
+Installed package is not available from any source: Windows Media Player
+Installed package is not available from any source: Movies & TV
+Installed package is not available from any source: Quick Assist
+Installed package is not available from any source: WinAppRuntime.Main.1.2
+Installed package is not available from any source: WinAppRuntime.Main.1.5
+Installed package is not available from any source: WinAppRuntime.Singleton
+Installed package is not available from any source: Windows Web Experience Pack
+Installed package is not available from any source: Cross Device Experience Host
+Installed package is not available from any source: Realtek Audio Control
+Installed package is not available from any source: Mail and Calendar

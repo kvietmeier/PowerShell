@@ -7,7 +7,10 @@
 # slackware version of dircolors) are recognized but ignored.
 # Below are TERM entries, which can be a glob patterns, to match
 # against the TERM environment variable to determine if it is colorizable.
+#
+###
 ### - Modified for WSL2 using a dark theme - ### 
+###
 TERM Eterm
 TERM ansi
 TERM *color*

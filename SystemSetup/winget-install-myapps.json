@@ -79,20 +79,12 @@
 					"Version" : "21.4.4.12541"
 				},
 				{
-					"PackageIdentifier" : "TechSmith.Camtasia",
-					"Version" : "21.0.15.34558"
-				},
-				{
 					"PackageIdentifier" : "DigiDNA.iMazingHEICConverter",
 					"Version" : "1.0.10.0"
 				},
 				{
 					"PackageIdentifier" : "mRemoteNG.mRemoteNG",
 					"Version" : "1.76.20.24615"
-				},
-				{
-					"PackageIdentifier" : "WinSCP.WinSCP",
-					"Version" : "5.21"
 				},
 				{
 					"PackageIdentifier" : "Microsoft.RemoteDesktopClient",
