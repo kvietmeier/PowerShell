@@ -1,0 +1,365 @@
+{
+    "$help": "https://aka.ms/terminal-documentation",
+    "$schema": "https://aka.ms/terminal-profiles-schema-preview",
+    "actions": 
+    [
+        {
+            "command": "paste",
+            "id": "User.paste",
+            "keys": "ctrl+v"
+        },
+        {
+            "command": 
+            {
+                "action": "copy",
+                "singleLine": false
+            },
+            "id": "User.copy.644BA8F2",
+            "keys": "ctrl+c"
+        },
+        {
+            "command": 
+            {
+                "action": "splitPane",
+                "split": "auto",
+                "splitMode": "duplicate"
+            },
+            "id": "User.splitPane.A6751878",
+            "keys": "alt+shift+d"
+        },
+        {
+            "command": "find",
+            "id": "User.find",
+            "keys": "ctrl+shift+f"
+        }
+    ],
+    "copyFormatting": "none",
+    "copyOnSelect": true,
+    "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+    "focusFollowMouse": true,
+    "newTabMenu": 
+    [
+        {
+            "type": "remainingProfiles"
+        }
+    ],
+    "profiles": 
+    {
+        "defaults": 
+        {
+            "antialiasingMode": "cleartype",
+            "backgroundImage": null,
+            "bellStyle": "taskbar",
+            "colorScheme": "One Half Dark",
+            "cursorShape": "underscore",
+            "font": 
+            {
+                "face": "Cascadia Code",
+                "size": 11
+            },
+            "opacity": 91,
+            "useAcrylic": true
+        },
+        "list": 
+        [
+            {
+                "bellStyle": "none",
+                "colorScheme": "Tango Dark",
+                "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                "font": 
+                {
+                    "face": "IntelOne Mono",
+                    "size": 11,
+                    "weight": "semi-light"
+                },
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "hidden": false,
+                "name": "PowerShell",
+                "unfocusedAppearance": 
+                {
+                    "colorScheme": "One Half Dark"
+                }
+            },
+            {
+                "altGrAliasing": true,
+                "antialiasingMode": "grayscale",
+                "bellStyle": "none",
+                "closeOnExit": "graceful",
+                "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile",
+                "cursorShape": "bar",
+                "guid": "{5b02972e-59b1-4846-9298-c851fb43bfc9}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "ms-appx:///ProfileIcons/{61c54bbd-c2c6-5271-96e7-009a87ff44bf}.png",
+                "name": "PowerShell - NoProfile",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%"
+            },
+            {
+                "altGrAliasing": true,
+                "antialiasingMode": "grayscale",
+                "bellStyle": "none",
+                "closeOnExit": "graceful",
+                "colorScheme": "Campbell",
+                "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                "cursorShape": "bar",
+                "elevate": true,
+                "font": 
+                {
+                    "size": 11
+                },
+                "guid": "{66fe7db3-6ef1-451c-a56c-f63db19b1e3a}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "ms-appx:///ProfileIcons/{61c54bbd-c2c6-5271-96e7-009a87ff44bf}.png",
+                "name": "PowerShell - Admin",
+                "opacity": 100,
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%",
+                "useAcrylic": false
+            },
+            {
+                "altGrAliasing": true,
+                "antialiasingMode": "grayscale",
+                "bellStyle": "none",
+                "closeOnExit": "graceful",
+                "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile",
+                "cursorShape": "bar",
+                "elevate": true,
+                "guid": "{3b7060a0-e1d5-4e0c-8dac-c52b669c4ffb}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "ms-appx:///ProfileIcons/{61c54bbd-c2c6-5271-96e7-009a87ff44bf}.png",
+                "name": "PowerShell - Admin NoProfile",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%"
+            },
+            {
+                "colorScheme": "Vintage",
+                "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "hidden": false,
+                "name": "CMD"
+            },
+            {
+                "altGrAliasing": true,
+                "closeOnExit": "graceful",
+                "colorScheme": "Vintage",
+                "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                "elevate": true,
+                "guid": "{6b0f9efb-ca73-4917-9bde-63a7922e7d35}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png",
+                "name": "CMD - Admin",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%"
+            },
+            {
+                "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+                "hidden": false,
+                "name": "Azure Cloud Shell",
+                "source": "Windows.Terminal.Azure"
+            },
+            {
+                "colorScheme": "One Half Dark",
+                "font": 
+                {
+                    "face": "IntelOne Mono",
+                    "size": 12
+                },
+                "guid": "{4dd1e689-b517-5f39-947d-78e8a8bdf958}",
+                "hidden": false,
+                "name": "Ubuntu 20.04.6 LTS",
+                "source": "CanonicalGroupLimited.Ubuntu20.04LTS_79rhkp1fndgsc"
+            },
+            {
+                "guid": "{e5a83caa-4c73-52b3-ae6b-bc438d721ef9}",
+                "hidden": false,
+                "name": "Ubuntu 22.04.3 LTS",
+                "source": "CanonicalGroupLimited.Ubuntu22.04LTS_79rhkp1fndgsc"
+            },
+            {
+                "altGrAliasing": true,
+                "closeOnExit": "automatic",
+                "colorScheme": "Tango Dark",
+                "commandline": "ssh tools",
+                "font": 
+                {
+                    "weight": "semi-light"
+                },
+                "guid": "{ca6476a1-89aa-4192-b7dc-2840c6d4adb1}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "C:/Users/ksvietme/bin/wticons/azure.png",
+                "name": "SSH: tools",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%",
+                "unfocusedAppearance": 
+                {
+                    "colorScheme": "One Half Dark"
+                }
+            },
+            {
+                "altGrAliasing": true,
+                "bellStyle": "none",
+                "closeOnExit": "automatic",
+                "colorScheme": "Tango Dark",
+                "commandline": "ssh volt01",
+                "font": 
+                {
+                    "weight": "semi-light"
+                },
+                "guid": "{edc1e697-36fa-4ad4-ae5a-ad2c787b95e1}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "C:/Users/ksvietme/bin/wticons/azure.png",
+                "name": "SSH: vdb-01",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%",
+                "unfocusedAppearance": 
+                {
+                    "colorScheme": "One Half Dark"
+                }
+            },
+            {
+                "altGrAliasing": true,
+                "closeOnExit": "automatic",
+                "colorScheme": "Tango Dark",
+                "commandline": "ssh volt02",
+                "font": 
+                {
+                    "weight": "semi-light"
+                },
+                "guid": "{3b8b79cf-63d0-488b-9169-725023b9028b}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "C:/Users/ksvietme/bin/wticons/azure.png",
+                "name": "SSH: vdb-02",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%",
+                "unfocusedAppearance": 
+                {
+                    "colorScheme": "One Half Dark"
+                }
+            },
+            {
+                "altGrAliasing": true,
+                "closeOnExit": "automatic",
+                "colorScheme": "Tango Dark",
+                "commandline": "ssh volt03",
+                "font": 
+                {
+                    "weight": "semi-light"
+                },
+                "guid": "{a61918ec-633a-4265-ae30-b2942b9645b3}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "C:/Users/ksvietme/bin/wticons/azure.png",
+                "name": "SSH: vdb-03",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%",
+                "unfocusedAppearance": 
+                {
+                    "colorScheme": "One Half Dark"
+                }
+            },
+            {
+                "altGrAliasing": true,
+                "closeOnExit": "automatic",
+                "colorScheme": "Tango Dark",
+                "commandline": "ssh karlv@192.168.1.12",
+                "font": 
+                {
+                    "weight": "semi-light"
+                },
+                "guid": "{fb9b06c0-4eab-4fa4-9a13-24c83cbfe065}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "C:/Users/ksvietme/bin/wticons/azure.png",
+                "name": "SSH: mariner01",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%",
+                "unfocusedAppearance": 
+                {
+                    "colorScheme": "One Half Dark"
+                }
+            },
+            {
+                "altGrAliasing": true,
+                "closeOnExit": "automatic",
+                "colorScheme": "Tango Dark",
+                "commandline": "ssh sedjump",
+                "font": 
+                {
+                    "weight": "semi-light"
+                },
+                "guid": "{a03f7053-6d49-429e-895d-1746069f9dd5}",
+                "hidden": false,
+                "historySize": 9001,
+                "icon": "C:/Users/ksvietme/bin/wticons/azure.png",
+                "name": "SSH: SEDJump",
+                "padding": "8, 8, 8, 8",
+                "snapOnInput": true,
+                "startingDirectory": "%USERPROFILE%",
+                "unfocusedAppearance": 
+                {
+                    "colorScheme": "One Half Dark"
+                }
+            },
+            {
+                "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
+                "hidden": true,
+                "name": "Ubuntu",
+                "source": "Windows.Terminal.Wsl"
+            },
+            {
+                "guid": "{51855cb2-8cce-5362-8f54-464b92b32386}",
+                "hidden": false,
+                "name": "Ubuntu",
+                "source": "CanonicalGroupLimited.Ubuntu_79rhkp1fndgsc"
+            }
+        ]
+    },
+    "schemes": 
+    [
+        {
+            "background": "#3C0315",
+            "black": "#282A2E",
+            "blue": "#0170C5",
+            "brightBlack": "#676E7A",
+            "brightBlue": "#80C8FF",
+            "brightCyan": "#8ABEB7",
+            "brightGreen": "#B5D680",
+            "brightPurple": "#AC79BB",
+            "brightRed": "#BD6D85",
+            "brightWhite": "#FFFFFD",
+            "brightYellow": "#FFFD76",
+            "cursorColor": "#FFFFFF",
+            "cyan": "#3F8D83",
+            "foreground": "#FFFFFD",
+            "green": "#76AB23",
+            "name": "Raspberry",
+            "purple": "#7D498F",
+            "red": "#BD0940",
+            "selectionBackground": "#FFFFFF",
+            "white": "#FFFFFD",
+            "yellow": "#E0DE48"
+        }
+    ],
+    "startOnUserLogin": true,
+    "tabWidthMode": "titleLength",
+    "themes": [],
+    "trimBlockSelection": true,
+    "trimPaste": true,
+    "useAcrylicInTabRow": true
+}

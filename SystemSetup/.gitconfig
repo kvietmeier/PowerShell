@@ -1,0 +1,21 @@
+###===================================================================================### 
+#  .gitconfig
+#
+#  Created By: Karl Vietmeier
+#
+###===================================================================================### 
+
+# Proxies
+[http]
+    #proxy = HTTPS_PROXY=http://proxy-dmz.intel.com:912
+
+# Credentials
+[user]
+	name = kvietmeier
+	email = karlv@storagenet.org
+[credential]
+	helper = store
+
+### Misc settings	
+[init]
+	defaultBranch = master
