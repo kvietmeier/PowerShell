@@ -17,25 +17,71 @@
 #      Basic functions to create aliased commands
 ###====================================================================================###
 
+# This function retrieves and displays the last boot up time of the system.
 function uptime {
-    # Query the win32_operatingsystem WMI class
-    Get-WmiObject win32_operatingsystem | 
-    # Select the computer name and convert the last boot-up time to a readable format
-    Select-Object csname, @{LABEL='LastBootUpTime'; EXPRESSION={$_.ConvertToDateTime($_.lastbootuptime)}}
+	Get-WmiObject win32_operatingsystem | Select-Object csname, @{LABEL='LastBootUpTime';
+	EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}}
 }
 
+# This function searches for files with a specified name pattern recursively.
 function find-file($name) {
+  # Recursively get all items that match the name pattern and handle errors silently
 	Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue | ForEach-Object {
+    # Store the directory path of the current item
 		$place_path = $_.directory
+    # Output the full path of the current item
 		Write-Output "${place_path}\${_}"
 	}
 }
 
-#-- Path and cd related stuff
+# Access full history across sessions - search is broken
+function hist { 
+  $find = $args; 
+  Write-Host "Finding in full history using {`$_ -like `"*$find*`"}"; 
+  #Get-Content (Get-PSReadlineOption).HistorySavePath | Where-Object {$_.HistorySavePath -Like '*$find*'} | Get-Unique | more 
+  #Get-Content (Get-PSReadlineOption).HistorySavePath | Get-Unique | more 
+  Get-Content (Get-PSReadlineOption).HistorySavePath | Get-Unique 
+}
+
+
+
+###====================================================================================================###
+#--        Paths, shortcuts, aliases, and system info
+###====================================================================================================###
+# Create path variables
+#"C:\Users\" + $env:UserName + '\bin'
+$Repos = "C:\Users\" + $env:UserName + "\repos"
+$VastRepo = "C:\Users\" + $env:UserName + "\repos\Vast"
+$VocRepo = "C:\Users\" + $env:UserName + "\repos\Vast\karlv-vastoncloud"
+$TFRepo = "C:\Users\" + $env:UserName + "\repos\Terraform\"
+$TFGCPRepo = "C:\Users\" + $env:UserName + "\repos\Terraform\gcp"
+$TFAzureRepo = "C:\Users\" + $env:UserName + "\repos\Terraform\azure"
+
 function get-path { ($Env:Path).Split(";") }
 function cd...  { Set-Location ..\.. }
 function cd.... { Set-Location ..\..\.. }
 function cdhome { Set-Location $HOME }
+
+function CDRepos { Set-Location $Repos }
+Set-Alias repos CDRepos
+
+function TerraformDir { Set-Location $TFRepo }
+Set-Alias tfrepo TerraformDir
+
+function TerraformGCPDir { Set-Location $TFGCPRepo}
+Set-Alias tfgcp TerraformGCPDir
+
+function TerraformAzureDir { Set-Location $TFAzureRepo}
+Set-Alias tfaz TerraformAzureDir
+
+function VastRepoDir { Set-Location $VastRepo }
+Set-Alias vastrepo VastRepoDir
+
+function VoCRepoDir { Set-Location $VoCRepo }
+Set-Alias vocrepo VoCRepoDir
+
+
+
 
 function AKS2Dir { Set-Location C:\Users\ksvietme\repos\Terraform\azure\AKS\aks-2}
 Set-Alias aks2 AKS2Dir
@@ -46,13 +92,11 @@ Set-Alias aks1 AKSDir
 function AKSDir { Set-Location C:\Users\ksvietme\repos\Terraform\azure\AKS\aks-billrun}
 Set-Alias billrun AKSDir
 
-function AzureDir { Set-Location C:\Users\ksvietme\repos\Terraform\azure}
-Set-Alias azuretf AzureDir
 
-function CDRepos { Set-Location C:\Users\ksvietme\repos\ }
-Set-Alias repos CDRepos
-
+###====================================================================================================###
 ###--- Apps
+###====================================================================================================###
+
 function explore { explorer .  }
 
 function tf { terraform }
@@ -69,20 +113,23 @@ Set-Alias hwclock FixWSLClock
 
 function VSCodeInsiders {
     Param($file)
-    & 'C:\Users\ksvietme\AppData\Local\Programs\Microsoft VS Code Insiders\Code - Insiders.exe' $file
+    & 'C:\Users\karl.vietmeier\AppData\Local\Programs\Microsoft VS Code Insiders\Code - Insiders.exe' $file
 }
 Set-Alias code VSCodeInsiders
 
-# Lock Screen
-Function lock
-{
- $signature = @"
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool LockWorkStation();
+# This function locks the workstation.
+Function lock {
+  # Define a signature for the external function from the user32.dll to lock the workstation
+  $signature = @"
+  [DllImport("user32.dll", SetLastError = true)]
+  public static extern bool LockWorkStation();
 "@
-    $LockWorkStation = Add-Type -memberDefinition $signature -name "Win32LockWorkStation" -namespace Win32Functions -passthru
 
-    $LockWorkStation::LockWorkStation()|Out-Null
+  # Add the type with the defined signature to the PowerShell session and create an object to call the function
+  $LockWorkStation = Add-Type -memberDefinition $signature -name "Win32LockWorkStation" -namespace Win32Functions -passthru
+
+  # Call the LockWorkStation function to lock the workstation
+  $LockWorkStation::LockWorkStation()|Out-Null
 }
 
 
@@ -104,9 +151,9 @@ Set-Alias winbuild WindowsBuild
 #Set-Alias SysDet SystemInfo
 
 
-###====================================================================================###
+###====================================================================================================###
 ###--- Terminal related
-###====================================================================================###
+###====================================================================================================###
 
 # Open a Windows Terminal as Admin
 function AdminTerminal { powershell "Start-Process -Verb RunAs cmd.exe '/c start wt.exe  -p ""Windows PowerShell""'" }
@@ -204,9 +251,10 @@ function Find-PSReadLineHistory {
 Set-Alias searchhist Get-PSReadLineHistory
 
 
-###====================================================================================###
-#      Prompt mods
-###====================================================================================###
+###====================================================================================================###
+###--- Prompt mods
+###====================================================================================================###
+
 function prompt
 {
   $color = "Cyan"
@@ -230,10 +278,11 @@ function prompt
 }
 
 
-###====================================================================================###
-#     https://gist.github.com/aroben/5542538
-#     Process management
-###====================================================================================###
+###====================================================================================================###
+###---  Process management
+###     https://gist.github.com/aroben/5542538
+###====================================================================================================###
+
 function pstree {
   # Works like "ps -aux"
 	$ProcessesById = @{}
@@ -290,9 +339,9 @@ Set-Alias -Name listapps -Value ListGUIApps
 
 
 
-###====================================================================================###
-#      Misc Utilities
-###====================================================================================###
+###====================================================================================================###
+###--- Misc Utilities
+###====================================================================================================###
 
 function unzip ($file) {
     $dirname = (Get-Item $file).Basename
@@ -302,9 +351,124 @@ function unzip ($file) {
 }
 
 
-###====================================================================================###
-#      Git related
-###====================================================================================###
+
+###====================================================================================================###
+###--- Terraform Related   
+###====================================================================================================###
+
+
+function tfapply {
+  # Run an apply using the tfvars file in the current folder
+  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
+  terraform apply --auto-approve -var-file="$VarFile"
+}
+
+function tfdestroy {
+  # Run a destroy using the tfvars file in the current folder 
+  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
+  terraform destroy --auto-approve -var-file="$VarFile"
+}
+
+function tfplan {
+  # Run plan using the tfvars file in the current folder
+  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
+  terraform plan -var-file="$VarFile"
+}
+
+function tfshow {
+  # 
+  terraform show
+}
+
+
+
+#function tfaks2([string]$action='apply', [string]$approve='-auto-approve', [string]$var_file='.\aks2-terraform.tfvars') {
+#  terraform $action $approve -var-file=$var_file
+#}
+
+
+###====================================================================================================###
+###--- GCP Related  
+###====================================================================================================###
+
+function GCPAuthUpdateADC {
+  gcloud auth login --update-adc
+}
+Set-Alias gcpauthall GCPAuthUpdateADC
+
+function GCPAuthUser {
+  gcloud auth login
+}
+Set-Alias gcpauthuser GCPAuthUser
+
+function GCPGetProject {
+  $CurrentProject = gcloud info --format="value(config.project)"
+  Write-Host "The current active project is:  $CurrentProject"
+}
+Set-Alias gcpproject GCPGetProject
+
+function GCPGetCoreAcct {
+  $CoreAccount = gcloud config list account --format "value(core.account)"
+  Write-Host "The current core account is:  $CoreAccount"
+}
+Set-Alias gcpuser GCPGetCoreAcct
+
+function GCPGetAccessToken {
+  $GCPAccessToken = gcloud auth application-default print-access-token
+  Write-Host "$GCPAccessToken"
+}
+Set-Alias gcptoken GCPGetAccessToken
+
+
+
+
+
+###====================================================================================================###
+###--- Kubernetes Related   
+###====================================================================================================###
+
+function SetKubePath { [Environment]::SetEnvironmentVariable("KUBE_CONFIG_PATH", "~/.kube/config") }
+Set-Alias k8spath SetKubePath
+
+# Bunch of Aliases
+# https://manjit28.medium.com/powershell-define-shortcut-alias-for-common-kubernetes-commands-1c006d68cce2
+Set-Alias -Name k -Value kubectl
+
+function GetPods([string]$namespace='kube-system') { kubectl get pods -n $namespace }
+Set-Alias -Name kgp -Value GetPods
+ 
+function GetPods() { kubectl get pods -A }
+Set-Alias -Name kgpa -Value GetPods
+
+function GetPodsWide([string]$namespace='kube-system') { kubectl get pods -n $namespace -o wide }
+Set-Alias -Name kgpw -Value GetPods
+
+function GetPods() { kubectl get pods -A -o wide}
+Set-Alias -Name kgpwa -Value GetPods
+
+function GetAll([string]$namespace='kube-system') { kubectl get all -n $namespace }
+Set-Alias -Name kgall -Value GetAll
+
+function GetNodes() { kubectl get nodes -o wide }
+Set-Alias -Name kgn -Value GetNodes
+
+function DescribePod([string]$container, [string]$namespace='kube-system') { kubectl describe po $container -n $namespace }
+Set-Alias -Name kdp -Value DescribePod
+
+function GetLogs([string]$container, [string]$namespace='kube-system') { kubectl logs pod/$container -n $namespace }
+Set-Alias -Name klp -Value GetLogs
+
+function ApplyYaml([string]$filename, [string]$namespace='kube-system') { kubectl apply -f $filename -n $namespace }
+Set-Alias -Name kaf -Value ApplyYaml
+
+#function ExecContainerShell([string]$container, [string]$namespace='default') { kubectl exec -it $container -n $namespace — sh }
+#Set-Alias -Name kexec -Value ExecContainerShell
+
+
+###====================================================================================================###
+###--- Git related
+###====================================================================================================###
+
 # For git commits
 function gpush {
   # Onle liner git commit with commit message  
@@ -348,85 +512,28 @@ Set-Alias -Name r -Value Get-GitRemote -Force -Option AllScope
 
 #>
 
-###====================================================================================###
-#      Terraform related
-###====================================================================================###
+###====================================================================================================###
+###--- Misc utilities
+###====================================================================================================###
 
-function tfapply {
-  # Run an apply using the tfvars file in the current folder
-  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
-  terraform apply --auto-approve -var-file="$VarFile"
+function GetMyIP {
+  $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
+  
+  # See it on the screen
+  Write-Host ""
+  Write-Host "Current Router/VPN IP: $($RouterIP.ip)"
+  Write-Host ""
+  
+  # Create/Set an Environment variable for later use
+  $env:MyIP  = $($RouterIP.ip)
 }
-
-function tfdestroy {
-  # Run a destroy using the tfvars file in the current folder 
-  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
-  terraform destroy --auto-approve -var-file="$VarFile"
-}
-
-function tfplan {
-  # Run plan using the tfvars file in the current folder
-  $VarFile=(Get-ChildItem -Path .  -Recurse -Filter "*.tfvars")
-  terraform plan -var-file="$VarFile"
-}
-
-function tfshow {
-  # 
-  terraform show
-}
-
-function TerraformDir { Set-Location C:\Users\ksvietme\repos\Terraform\Azure}
-Set-Alias tform TerraformDir
-
-function tfaks2([string]$action='apply', [string]$approve='-auto-approve', [string]$var_file='.\aks2-terraform.tfvars') {
-  terraform $action $approve -var-file=$var_file
-}
+# Run function to set variable
+Set-Alias myip GetMyIP
 
 
-###====================================================================================###
-#      Kubernetes related
-###====================================================================================###
-
-function SetKubePath { [Environment]::SetEnvironmentVariable("KUBE_CONFIG_PATH", "~/.kube/config") }
-Set-Alias k8spath SetKubePath
-
-# Bunch of Aliases
-# https://manjit28.medium.com/powershell-define-shortcut-alias-for-common-kubernetes-commands-1c006d68cce2
-Set-Alias -Name k -Value kubectl
-
-function GetPods([string]$namespace='kube-system') { kubectl get pods -n $namespace }
-Set-Alias -Name kgp -Value GetPods
- 
-function GetPods() { kubectl get pods -A }
-Set-Alias -Name kgpa -Value GetPods
-
-function GetPodsWide([string]$namespace='kube-system') { kubectl get pods -n $namespace -o wide }
-Set-Alias -Name kgpw -Value GetPods
-
-function GetPods() { kubectl get pods -A -o wide}
-Set-Alias -Name kgpwa -Value GetPods
-
-function GetAll([string]$namespace='kube-system') { kubectl get all -n $namespace }
-Set-Alias -Name kgall -Value GetAll
-
-function GetNodes() { kubectl get nodes -o wide }
-Set-Alias -Name kgn -Value GetNodes
-
-function DescribePod([string]$container, [string]$namespace='kube-system') { kubectl describe po $container -n $namespace }
-Set-Alias -Name kdp -Value DescribePod
-
-function GetLogs([string]$container, [string]$namespace='kube-system') { kubectl logs pod/$container -n $namespace }
-Set-Alias -Name klp -Value GetLogs
-
-function ApplyYaml([string]$filename, [string]$namespace='kube-system') { kubectl apply -f $filename -n $namespace }
-Set-Alias -Name kaf -Value ApplyYaml
-
-#function ExecContainerShell([string]$container, [string]$namespace='default') { kubectl exec -it $container -n $namespace — sh }
-#Set-Alias -Name kexec -Value ExecContainerShell
-
-###==========================================================================================###
-###                                      Azure Related                                       ###
-###==========================================================================================###
+###====================================================================================================###
+###--- Azure Related
+###====================================================================================================###
 
 # Tab Completion for AZ CLI
 Register-ArgumentCompleter -Native -CommandName az -ScriptBlock {
@@ -666,23 +773,6 @@ Set-Alias myregions ListMyRegions
 
 
 
-###====================================================================================###
-###                                 Misc utilities                                     ###
-###====================================================================================###
-
-function GetMyIP {
-  $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
-  
-  # See it on the screen
-  Write-Host ""
-  Write-Host "Current Router/VPN IP: $($RouterIP.ip)"
-  Write-Host ""
-  
-  # Create/Set an Environment variable for later use
-  $env:MyIP  = $($RouterIP.ip)
-}
-# Run function to set variable
-Set-Alias myip GetMyIP
 
 <#  Update my NSG after an IP change
 function SetNSGIP {
