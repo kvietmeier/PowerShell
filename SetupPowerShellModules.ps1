@@ -112,6 +112,6 @@ PreReqs
 
 # Pick the ones you need
 AZModules
-#OptionalModules
+OptionalModules
 #ADModules
 #AzureEdgeModules
