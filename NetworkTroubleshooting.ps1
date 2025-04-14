@@ -21,22 +21,6 @@ return
 $ErrorActionPreference = "stop"
 
 
-###---- Get my functions and credentials ----###
-
-# Run from the location of the script
-Set-Location $PSscriptroot
-#Set-Location ../AzureLabs/scripts
-
-### Get my functions and credentials
-# Credentials  (stored outside the repo)
-. 'C:\.info\miscinfo.ps1'
-
-# Functions (In this repo)
-. '.\FunctionLibrary.ps1'
-
-###---- End my functions and credentials ----###
-
-
 # Enable ICMPv4-In without disabling Windows Firewall
 New-NetFirewallRule –DisplayName "Allow ICMPv4-In" –Protocol ICMPv4
 
@@ -313,11 +297,3 @@ Get-NetRoute -DestinationPrefix "0.0.0.0/0" | Select-Object -ExpandProperty "Nex
 Get-NetRoute | Where-Object -FilterScript { $_.NextHop -Ne "::" } | Where-Object -FilterScript { $_.NextHop -Ne "0.0.0.0" } | Where-Object -FilterScript { ($_.NextHop.SubString(0,6) -Ne "fe80::") }
 Get-NetRoute | Where-Object -FilterScript {$_.NextHop -Ne "::"} | Where-Object -FilterScript { $_.NextHop -Ne "0.0.0.0" } | Where-Object -FilterScript { ($_.NextHop.SubString(0,6) -Ne "fe80::") } | Get-NetAdapter
 Get-NetRoute | Where-Object -FilterScript { $_.ValidLifetime -Eq ([TimeSpan]::MaxValue) }
-
-
-
-
-
-
-
-
