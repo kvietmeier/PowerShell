@@ -19,7 +19,7 @@ if (-not $RepoRoot) {
 }
 
 if (-not $BackupRoot) {
-    $BackupRoot = Join-Path $env:USERPROFILE "TerraformBackups"
+    $BackupRoot = "C:\Users\karl.vietmeier\OneDrive - KCV Consulting\Documents\TerraformBackup"
 }
 
 # Create a timestamped backup directory
