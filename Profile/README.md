@@ -8,20 +8,26 @@ Some features:
 - Detect VPN and set/unset the system proxies and correct info for Vagrant and git.
 - A config block for the PSColor module that will colorize directory listings.
 - Misc functions/aliases to create a few "Linux like" CLI tools.
-- Some Azure cli aliases to authenticate to a tenant and start/stop VMs.
+- Azure cli aliases to authenticate to a tenant and start/stop VMs.
+- Same for GCP
 - A bunch of Kubernetes aliases/functions I scrounged.
+- Same for Git
 - Anything else handy I think of.
   
 Files:  
 
-- DetectVPN.ps1  
-- LinuxFunctions.ps1  
-- Microsoft.PowerShell_profile.ps1  
-- Microsoft.VSCode_profile.ps1  
-- UserFunctions.ps1  
-- PSColorConfig.ps1
+- AzureFunctions.ps1
+- CommandAliases.ps1
+- GCPFunctions.ps1
+- K8SAndGit.ps1
 - kubecompletion.ps1
-- kubectl_aliases.ps1
+- LinuxFunctions.ps1
+- Microsoft.PowerShell_profile.ps1
+- VSCode_profile.ps1
+- ProcessFunctions.ps1
+- TerminalAndPrompts.ps1
+- TerraformFunctions.ps1
+- UserFunctions.ps1
 
 #### Useful Document Links
 
@@ -77,4 +83,25 @@ Set-Alias azlogin AZCommConnectSP
 
 function AZcommLogout () { azlogout "az logout --username $SPAppID" }
 Set-Alias azlogout AZcommLogout
+~~~
+
+Run "terraform apply --auto-approve" with a non-standard tfvars filename
+
+~~~powershell
+function tfapply {
+  # Get all the .tfvars files in the current directory (no recursion)
+  $VarFiles = Get-ChildItem -Path . -Filter "*.tfvars" | Select-Object -ExpandProperty FullName
+
+  # Check if any .tfvars files were found
+  if ($VarFiles.Count -eq 0) {
+    Write-Host "No .tfvars files found in the current directory."
+    return
+  }
+
+  # Build the Terraform apply command with each -var-file argument
+  $TerraformArgs = $VarFiles | ForEach-Object { "-var-file=$($_)" }
+
+  # Run terraform apply with the .tfvars files
+  terraform apply --auto-approve $TerraformArgs
+}
 ~~~

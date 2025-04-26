@@ -74,11 +74,23 @@ function cddash {
 }
 
 # From https://github.com/keithbloom/powershell-profile
+# This function runs a specified executable with elevated (administrator) privileges.
 function sudo {
-	$file, [string]$arguments = $args;
-	$psi = new-object System.Diagnostics.ProcessStartInfo $file;
-	$psi.Arguments = $arguments;
-	$psi.Verb = "runas";
-	$psi.WorkingDirectory = get-location;
-	[System.Diagnostics.Process]::Start($psi) >> $null
+    # Capture the file and optional arguments passed to the function
+    $file, [string]$arguments = $args;
+
+    # Create a new ProcessStartInfo object for the executable file
+    $psi = new-object System.Diagnostics.ProcessStartInfo $file;
+
+    # Set the arguments for the process, if any
+    $psi.Arguments = $arguments;
+
+    # Set the verb to "runas" to run the process with administrator privileges
+    $psi.Verb = "runas";
+
+    # Set the working directory to the current location
+    $psi.WorkingDirectory = get-location;
+
+    # Start the process and redirect output to null
+    [System.Diagnostics.Process]::Start($psi) >> $null
 }
