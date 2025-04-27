@@ -22,16 +22,16 @@ $VocRepo     = "C:\Users\" + $env:UserName + "\repos\Vast\karlv-vastoncloud\5_3\
 $TFRepo      = "C:\Users\" + $env:UserName + "\repos\Terraform\"
 $TFGCPRepo   = "C:\Users\" + $env:UserName + "\repos\Terraform\gcp"
 $TFAzureRepo = "C:\Users\" + $env:UserName + "\repos\Terraform\azure"
-
+$OneDriveDocsPath = "C:\Users\karl.vietmeier\OneDrive - Vast Data\Documents\"
 
 ###================== System Paths ======================###
 function get-path { ($Env:Path).Split(";") }
-function cd...  { Set-Location ..\.. }
-function cd.... { Set-Location ..\..\.. }
+function cdup1  { Set-Location ..\.. }
+function cdup2 { Set-Location ..\..\.. }
+function cdup3 { Set-Location ..\..\..\.. }
 function cdhome { Set-Location $HOME }
-
-function CDRepos { Set-Location $Repos }
-Set-Alias repos CDRepos
+function cdrepos { Set-Location $Repos }
+function cddocs { Set-Location $OneDriveDocsPath }
 
 ###================= Terraform Paths ====================###
 function TerraformDir { Set-Location $TFRepo }
@@ -88,42 +88,56 @@ function unzip ($file) {
 
 ##-  List functions and aliases
 function Show-ProfileFunctionsAndAliases {
+    # Get the folder path where the current PowerShell profile is located
     $profileFolder = Split-Path -Parent $PROFILE
+
+    # Retrieve all .ps1 files in the profile folder (scripts with functions/aliases)
     $ps1Files = Get-ChildItem -Path $profileFolder -Filter '*.ps1' -File
 
+    # Initialize an empty array to store results for each file
     $results = @()
 
+    # Loop through each .ps1 file
     foreach ($file in $ps1Files) {
+        # Read the content of the file
         $content = Get-Content $file.FullName
 
+        # Extract functions by searching for lines that define them
         $functions = $content | Select-String -Pattern '^\s*function\s+([a-zA-Z0-9_]+)' | ForEach-Object {
+            # Use regex to capture the function name and add it to the list
             ($_ -match 'function\s+([a-zA-Z0-9_]+)') | Out-Null
             $matches[1]
         }
 
+        # Extract aliases defined in the file (Set-Alias or New-Alias)
         $aliases = $content | Select-String -Pattern '^\s*(Set-Alias|New-Alias)\s+([a-zA-Z0-9_]+)\s+([^\s]+)' | ForEach-Object {
+            # Use regex to capture the alias name and its associated command
             ($_ -match '(Set-Alias|New-Alias)\s+([a-zA-Z0-9_]+)\s+([^\s]+)') | Out-Null
             [PSCustomObject]@{
-                Alias   = $matches[2]
-                Command = $matches[3]
+                Alias   = $matches[2]  # The alias name
+                Command = $matches[3]  # The command it points to
             }
         }
 
+        # Add the results for this file to the results array
         $results += [PSCustomObject]@{
-            File      = $file.Name
-            Functions = $functions
-            Aliases   = $aliases
+            File      = $file.Name       # File name
+            Functions = $functions       # List of function names
+            Aliases   = $aliases         # List of aliases with commands
         }
     }
 
+    # Loop through the results and display functions and aliases for each file
     foreach ($item in $results) {
         Write-Host "`n=== $($item.File) ===" -ForegroundColor Cyan
 
+        # Display functions if any were found
         if ($item.Functions.Count -gt 0) {
             Write-Host "-- Functions --" -ForegroundColor Green
             $item.Functions | ForEach-Object { Write-Host $_ }
         }
 
+        # Display aliases if any were found
         if ($item.Aliases.Count -gt 0) {
             Write-Host "-- Aliases --" -ForegroundColor Yellow
             foreach ($alias in $item.Aliases) {

@@ -13,7 +13,8 @@ $ProfilePath      = Join-Path $OneDriveVastPath "Microsoft.PowerShell_profile.ps
 
 . $ProfilePath
 
-
-
-# Set some vSCode specififc settings
-# TBD
+# Set vSCode specififc settings
+if ($env:TERM_PROGRAM -eq "vscode") {
+    Write-Host "Running in VSCode - apply editor-specific settings..." -ForegroundColor Yellow
+    # Add your VSCode-specific config here
+}
