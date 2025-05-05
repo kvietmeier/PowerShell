@@ -22,7 +22,8 @@ $VocRepo     = "C:\Users\" + $env:UserName + "\repos\Vast\karlv-vastoncloud\5_3\
 $TFRepo      = "C:\Users\" + $env:UserName + "\repos\Terraform\"
 $TFGCPRepo   = "C:\Users\" + $env:UserName + "\repos\Terraform\gcp"
 $TFAzureRepo = "C:\Users\" + $env:UserName + "\repos\Terraform\azure"
-$OneDriveDocsPath = "C:\Users\karl.vietmeier\OneDrive - Vast Data\Documents\"
+$OneDriveDocsPath = "C:\Users\" + $env:UserName + "\OneDrive - Vast Data\Documents\"
+
 
 ###================== System Paths ======================###
 function get-path { ($Env:Path).Split(";") }

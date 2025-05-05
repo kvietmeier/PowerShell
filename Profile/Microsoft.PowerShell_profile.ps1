@@ -13,6 +13,16 @@
 #>
 ###====================================================================================###
 
+# Check if the profile has already been sourced
+# - sourcing iot somewhere else this is a hack to fix it
+if (-not (Test-Path $PROFILE)) {
+    $OneDriveVastPath = "C:\Users\karl.vietmeier\OneDrive - Vast Data\Documents\WindowsPowerShell"
+    $ProfilePath = Join-Path $OneDriveVastPath "Microsoft.PowerShell_profile.ps1"
+    . $ProfilePath
+}
+
+
+
 #-------------------------------------------
 # Import Modules Safely
 #-------------------------------------------
@@ -90,10 +100,22 @@ $PSDefaultParameterValues["Out-File:Encoding"] = "utf8"
 Set-PSReadlineKeyHandler -Chord Tab -Function MenuComplete
 
 #-------------------------------------------
-# Start Directory
+# Start Directory - overrides Windows Terminal profiles
 #-------------------------------------------
 $StartDir = Join-Path $env:HOMEPATH "repos"
 Set-Location $StartDir
+
+<# 
+# Check if we're in Windows Terminal (you could also check if it's PowerShell Core or others)
+if ($env:WT_SESSION) {
+    # Avoid overriding the starting directory in Windows Terminal
+    Write-Host "Starting Directory in Windows Terminal is not being overridden" -ForegroundColor Green
+} else {
+    # Set the directory for non-terminal sessions
+    $StartDir = Join-Path $env:HOMEPATH "repos"
+    Set-Location $StartDir
+}
+#>
 
 #-------------------------------------------
 # Set Environment Variables
@@ -111,15 +133,20 @@ $env:ARM_CLIENT_SECRET   = "$TFM_AppSecret"
 $env:DRunPEM = "C:\Users\karl.vietmeier\Documents\Projects\keys\vastdatarunners.pem"
 
 
+<# 
 #-------------------------------------------
 # Status Messages (optional for clarity)
 #-------------------------------------------
 # Don't need these
-#Write-Host "=== PowerShell profile loaded for $env:USERNAME ===" -ForegroundColor Cyan
-#Write-Host "Starting Directory: $StartDir" -ForegroundColor Green
+Write-Host "=== PowerShell profile loaded for $env:USERNAME ===" -ForegroundColor Cyan
+Write-Host "Starting Directory: $StartDir" -ForegroundColor Green
 
 if ($IsAdmin) {
     Write-Host "Running as Administrator" -ForegroundColor Yellow
 } else {
     Write-Host "Running as Standard User" -ForegroundColor DarkYellow
 }
+#>
+#Write-Host "=== Core PowerShell profile sourced" 
+
+Write-Host "=== PowerShell profile loaded for $env:USERNAME ===" -ForegroundColor Cyan
