@@ -168,10 +168,9 @@ function RemoveGcpAutoAllocatedIps {
 #  This block demonstrates how to use the functions. You can uncomment and modify the function calls as needed.
 
 # --- Define the number of IPs for reservation/deletion ---
-$ipsToManage = 20 # This number should match the batch size for reservation and deletion
+$ipsToManage = 10 # This number should match the batch size for reservation and deletion
 
 # --- Uncomment the function calls you want to execute ---
-
 # 1. Reserve auto-allocated IPs
 Write-Host "--- Reserving IPs ---"
 ReserveGcpAutoAllocatedIps -NumberOfIps $ipsToManage
@@ -179,7 +178,8 @@ ReserveGcpAutoAllocatedIps -NumberOfIps $ipsToManage
 # 2. List all internal IPs (useful for verification)
 Write-Host "`n--- Listing IPs ---"
 ListGcpInternalIps
-
 # 3. Delete auto-allocated IPs (use with caution!)
-# Write-Host "`n--- Deleting IPs ---"
-# RemoveGcpAutoAllocatedIps -NumberOfIpsToDelete $ipsToManage
+<# 
+Write-Host "`n--- Deleting IPs ---"
+RemoveGcpAutoAllocatedIps -NumberOfIpsToDelete $ipsToManage
+#>
