@@ -15,8 +15,25 @@ function df { get-volume }
 function ll($name) { Get-ChildItemColor -Path . -Force }
 function l($name) { Get-ChildItemColorFormatWide -Path . -Force }
 
-function sed($file, $find, $replace){
-	(Get-Content $file).replace("$find", $replace) | Set-Content $file
+function sed {
+    param (
+        [string]$FilePath,
+        [string]$Find,
+        [string]$Replace
+    )
+
+    if (-Not (Test-Path $FilePath)) {
+        Write-Error "File '$FilePath' not found."
+        return
+    }
+
+    try {
+        $content = Get-Content $FilePath -Raw
+        $newContent = $content -replace [regex]::Escape($Find), [regex]::Escape($Replace)
+        Set-Content -Path $FilePath -Value $newContent -Encoding UTF8
+    } catch {
+        Write-Error "Error updating file: $_"
+    }
 }
 
 function sed_recursive($filePattern, $find, $replace) {
@@ -60,18 +77,27 @@ function touch($file) {
 
 # "cd - not working "
 function cddash {
-    if ($args[0] -eq '-') {
-        $_pwd = $OLDPWD;
-    } else {
-        $_pwd = $args[0];
-    }
-    $tmp = Get-Location;
+    param(
+        [string]$dir
+    )
 
-    if ($_pwd) {
-        Set-Location $_pwd;
+    $current = Get-Location
+
+    if ($dir -eq '-') {
+        if (-not $global:OLDPWD) {
+            Write-Host "OLDPWD not set." -ForegroundColor Yellow
+            return
+        }
+        Set-Location $global:OLDPWD
+    } elseif ($dir) {
+        Set-Location $dir
+    } else {
+        Set-Location ~
     }
-    Set-Variable -Name OLDPWD -Value $tmp -Scope global;
+
+    $global:OLDPWD = $current
 }
+
 
 # From https://github.com/keithbloom/powershell-profile
 # This function runs a specified executable with elevated (administrator) privileges.

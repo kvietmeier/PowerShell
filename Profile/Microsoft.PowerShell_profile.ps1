@@ -13,15 +13,6 @@
 #>
 ###====================================================================================###
 
-# Check if the profile has already been sourced
-# - sourcing iot somewhere else this is a hack to fix it
-if (-not (Test-Path $PROFILE)) {
-    $OneDriveVastPath = "C:\Users\karl.vietmeier\OneDrive - Vast Data\Documents\WindowsPowerShell"
-    $ProfilePath = Join-Path $OneDriveVastPath "Microsoft.PowerShell_profile.ps1"
-    . $ProfilePath
-}
-
-
 
 #-------------------------------------------
 # Import Modules Safely
@@ -85,9 +76,10 @@ $GitCredsPath  = "$env:USERPROFILE\.git-credentials"
 #-------------------------------------------
 # Check Admin Rights
 #-------------------------------------------
-$Identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
-$Principal = New-Object Security.Principal.WindowsPrincipal $Identity
-$IsAdmin   = $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$Identity       = [Security.Principal.WindowsIdentity]::GetCurrent()
+$Principal      = New-Object Security.Principal.WindowsPrincipal $Identity
+$IsAdmin        = $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$global:IsAdmin = $IsAdmin  # for later conditional logic
 
 # Clean up temp variables
 Remove-Variable Identity, Principal
@@ -133,9 +125,12 @@ $env:ARM_CLIENT_SECRET   = "$TFM_AppSecret"
 $env:DRunPEM = "C:\Users\karl.vietmeier\Documents\Projects\keys\vastdatarunners.pem"
 
 
+
+
+###====================================================================================###
 <# 
 #-------------------------------------------
-# Status Messages (optional for clarity)
+# Status Messages Use for debugging
 #-------------------------------------------
 # Don't need these
 Write-Host "=== PowerShell profile loaded for $env:USERNAME ===" -ForegroundColor Cyan
@@ -148,5 +143,6 @@ if ($IsAdmin) {
 }
 #>
 #Write-Host "=== Core PowerShell profile sourced" 
+#Write-Host "=== PowerShell profile loaded for $env:USERNAME ===" -ForegroundColor Cyan
 
-Write-Host "=== PowerShell profile loaded for $env:USERNAME ===" -ForegroundColor Cyan
+#$PSModuleAutoLoadingPreference = 'AllModules'

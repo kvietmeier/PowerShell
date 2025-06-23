@@ -16,23 +16,27 @@
 ###====================================================================================================###
 # Create path variables
 #"C:\Users\" + $env:UserName + '\bin'
+$OneDriveDocsPath = "C:\Users\" + $env:UserName + "\OneDrive - Vast Data\Documents\"
+
+# Misc Folders
 $Repos       = "C:\Users\" + $env:UserName + "\repos"
 $VastRepo    = "C:\Users\" + $env:UserName + "\repos\Vast"
-$VocRepo     = "C:\Users\" + $env:UserName + "\repos\Vast\karlv-vastoncloud\5_3\"
+$VocRepo     = "C:\Users\" + $env:UserName + "\repos\Vast\karlv-vastoncloud\5_3\1748367-GA"
 $TFRepo      = "C:\Users\" + $env:UserName + "\repos\Terraform\"
 $TFGCPRepo   = "C:\Users\" + $env:UserName + "\repos\Terraform\gcp"
 $TFAzureRepo = "C:\Users\" + $env:UserName + "\repos\Terraform\azure"
-$OneDriveDocsPath = "C:\Users\" + $env:UserName + "\OneDrive - Vast Data\Documents\"
 
 
-###================== System Paths ======================###
+###================== Moving Around ======================###
 function get-path { ($Env:Path).Split(";") }
-function cdup1  { Set-Location ..\.. }
-function cdup2 { Set-Location ..\..\.. }
-function cdup3 { Set-Location ..\..\..\.. }
+function cdup  { Set-Location .. }
+function cdup2  { Set-Location ..\.. }
+function cdup3 { Set-Location ..\..\.. }
+function cdup4 { Set-Location ..\..\..\.. }
 function cdhome { Set-Location $HOME }
 function cdrepos { Set-Location $Repos }
 function cddocs { Set-Location $OneDriveDocsPath }
+
 
 ###================= Terraform Paths ====================###
 function TerraformDir { Set-Location $TFRepo }
@@ -50,6 +54,7 @@ Set-Alias vocrepo VoCRepoDir
 ###================= Azure Paths ====================###
 function TerraformAzureDir { Set-Location $TFAzureRepo}
 Set-Alias tfaz TerraformAzureDir
+
 function AKS2Dir { Set-Location C:\Users\ksvietme\repos\Terraform\azure\AKS\aks-2}
 Set-Alias aks2 AKS2Dir
 
