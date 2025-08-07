@@ -44,12 +44,10 @@ function Update-GCPIngressRule {
     }
 
     Set-Content -Path $filePath -Value $updatedLines -Encoding UTF8
-    Write-Host "✔ Replaced MobileIP entry with: $NewIP"
+    Write-Host "Replaced MobileIP entry with: $NewIP"
 }
 
 #Update-GCPIngressRule
-
-
 <#
 .SYNOPSIS
 Appends a new IP address to the ingress_filter list in a Terraform .tfvars file.
@@ -130,8 +128,6 @@ function Add-GCPIngressRule {
         #>
     }
     else {
-        Write-Error "❌ Could not find end of ingress_filter array."
+        Write-Error "Could not find end of ingress_filter array."
     }
 }
-
-#Add-GCPIngressRule
