@@ -4,7 +4,7 @@
   Created By: Karl Vietmeier
     
   Description:
-     Confidential information we don't want exposed in profile.ps1 so we can share it
+   Terraform related functions/aliases
 
 #>
 ###====================================================================================###

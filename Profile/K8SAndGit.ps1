@@ -20,17 +20,17 @@ Set-Alias k8spath SetKubePath
 # https://manjit28.medium.com/powershell-define-shortcut-alias-for-common-kubernetes-commands-1c006d68cce2
 Set-Alias -Name k -Value kubectl
 
-function GetPods([string]$namespace='kube-system') { kubectl get pods -n $namespace }
-Set-Alias -Name kgp -Value GetPods
- 
-function GetPods() { kubectl get pods -A }
-Set-Alias -Name kgpa -Value GetPods
+function GetPodsDefault([string]$namespace='kube-system') { kubectl get pods -n $namespace }
+Set-Alias -Name kgp -Value GetPodsDefault
+
+function GetPodsAll() { kubectl get pods -A }
+Set-Alias -Name kgpa -Value GetPodsAll
 
 function GetPodsWide([string]$namespace='kube-system') { kubectl get pods -n $namespace -o wide }
-Set-Alias -Name kgpw -Value GetPods
+Set-Alias -Name kgpw -Value GetPodsWide
 
-function GetPods() { kubectl get pods -A -o wide}
-Set-Alias -Name kgpwa -Value GetPods
+function GetPodsWideAll() { kubectl get pods -A -o wide }
+Set-Alias -Name kgpwa -Value GetPodsWideAll
 
 function GetAll([string]$namespace='kube-system') { kubectl get all -n $namespace }
 Set-Alias -Name kgall -Value GetAll
@@ -47,8 +47,9 @@ Set-Alias -Name klp -Value GetLogs
 function ApplyYaml([string]$filename, [string]$namespace='kube-system') { kubectl apply -f $filename -n $namespace }
 Set-Alias -Name kaf -Value ApplyYaml
 
-#function ExecContainerShell([string]$container, [string]$namespace='default') { kubectl exec -it $container -n $namespace — sh }
-#Set-Alias -Name kexec -Value ExecContainerShell
+# Uncomment and fix this if needed:
+# function ExecContainerShell([string]$container, [string]$namespace='default') { kubectl exec -it $container -n $namespace -- sh }
+# Set-Alias -Name kexec -Value ExecContainerShell
 
 
 ###====================================================================================================###
@@ -117,7 +118,6 @@ function Invoke-GitPull {
 }
 
 Set-Alias -Name gpl -Value Invoke-GitPull -Force -Option AllScope
-
 
 
 <###  More GitHub aliases - uncomment to use. 

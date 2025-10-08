@@ -1,9 +1,9 @@
-###===================================================================================###
+﻿###===================================================================================###
 ###  GCP Functions
 ###===================================================================================###
 function GCPAuthADCCreds {
     param (
-        [string]$GCPProject = "clouddev-itdesk124"
+        [string]$GCPProject = "myproject
     )
 
     if (-not $env:GOOGLE_APPLICATION_CREDENTIALS) {
@@ -108,117 +108,159 @@ function GCPListInstances () {
 }
 
 ###--- GCPManageClientVMs
-# Function to start or stop a list of Google Cloud VM instances.
-# This function takes an action ('start' or 'stop') as input and performs the corresponding operation
-# on a predefined list of VM instances. Optionally, you can limit how many VMs to process.
-#
-# - If the VM is already in the desired state (e.g., RUNNING for 'start' or TERMINATED for 'stop'),
-#   the VM is skipped.
-# - For each VM requiring action, a background job is queued to perform the operation in parallel.
-# - The function waits for all background jobs to finish and then outputs the results of each job.
-#
-# Parameters:
-# - $Action (string): Defines the operation to be performed on the VMs. Can be 'start' or 'stop'.
-# - $Zone (string): The Google Cloud zone where the VMs are located. Default is "us-west2-c".
-# - $Count (int): Optional. Limits how many VMs from the list should be processed. Default is 0 (process all).
-#
-# The function uses `gcloud compute instances describe` to check the current status of each VM,
-# and uses `gcloud compute instances start` or `gcloud compute instances stop` to change the state of the VM.
-#
-# This function runs operations in parallel using PowerShell background jobs to speed up bulk actions,
-# and provides a consolidated summary of the changes made.
+<#
+.SYNOPSIS
+    Start, stop, or resume a list of Google Cloud VM instances in parallel.
+
+.DESCRIPTION
+    This function performs the specified action ('start' or 'stop') on a predefined list of Google Cloud VM instances.
+    - Automatically determines the zone of each VM based on its name.
+    - Skips VMs that are already in the desired state:
+        * RUNNING for 'start' (or 'resume' if currently SUSPENDED)
+        * TERMINATED for 'stop'
+    - Queues background jobs for VMs that require action, enabling parallel execution.
+    - Waits for all jobs to complete and outputs a detailed result for each VM.
+    - Handles errors gracefully when a VM cannot be found or gcloud commands fail.
+
+.PARAMETER Action
+    The operation to perform on each VM. Allowed values: 'start', 'stop'.
+
+.PARAMETER Count
+    Optional. Limits how many VMs from the predefined list should be processed.
+    Default is 0 (process all VMs).
+
+.NOTES
+    - The function automatically resolves the correct zone for each VM.
+    - For 'start' action:
+        * TERMINATED VMs will be started.
+        * SUSPENDED VMs will be resumed automatically.
+    - For 'stop' action:
+        * RUNNING or SUSPENDED VMs will be stopped.
+    - Uses PowerShell background jobs to perform multiple actions concurrently for efficiency.
+    - Provides clear console output for skipped VMs, queued actions, and results.
+
+.EXAMPLE
+    GCPManageClientVMs start
+    # Starts all VMs in the list, resuming any that are suspended.
+
+.EXAMPLE
+    GCPManageClientVMs stop 5
+    # Stops the first 5 VMs in the list.
+
+#>
 
 function GCPManageClientVMs {
     param(
         [Parameter(Position = 0, Mandatory = $true)]
-        [ValidateSet("start", "stop")]
+        [ValidateSet("start","stop")]
         [string]$Action,
 
         [Parameter(Position = 1)]
-        [int]$Count = 0,  # Optional; 0 means "all"
-
-        [Parameter(Position = 2)]
-        [string]$Zone = "us-west2-c"  # Optional; defaults if not specified
+        [int]$Count = 0  # 0 = all
     )
 
-    # Define the list of VM names
+    # Define your list of VMs
     $instances = @(
-        "linux01",
-        "linux02",
-        "linux03",
-        "linux04",
-        "linux05",
-        "linux06",
-        "linux07",
-        "linux08",
-        "linux09",
-        "linux10",
-        "linux11"
+        "client01","client02","client03","client04","client05",
+        "client06","client07","client08","client09","client10","client11"
     )
 
-    # Trim the list to the requested number of VMs if $Count is set
     if ($Count -gt 0) {
-        $instances = $instances[0..([math]::Min($Count, $instances.Count) - 1)]
+        $instances = $instances[0..([math]::Min($Count, $instances.Count)-1)]
     }
 
-    # Prepare to store background jobs
     $jobs = @()
 
-    # Determine the desired status based on the action
-    $desiredStatus = if ($Action -eq "start") { "RUNNING" } else { "TERMINATED" }
-
-    # Loop through each VM and decide whether to act
     foreach ($vm in $instances) {
-        # Query the current status of the VM
-        $status = (gcloud compute instances describe $vm --zone $Zone --format="get(status)") -replace "`n", ""
+        # Determine VM zone dynamically
+        # Determine VM zone dynamically
+        try {
+            $zoneRaw = & gcloud compute instances list --filter="name=$vm" --format="value(zone)"
+            if (-not $zoneRaw) {
+                Write-Host "Error: Could not determine zone for ${vm}" -ForegroundColor Red
+                continue
+            }
 
-        # Handle missing status (e.g. instance doesn't exist or API error)
-        if ($status -eq "") {
-            Write-Host "Error: Unable to get status for $vm" -ForegroundColor Red
+        # Take first line and split
+        $Zone = $zoneRaw.Trim() -split '/' | Select-Object -Last 1
+
+        } catch {
+            Write-Host "Error querying zone for ${vm}: $_" -ForegroundColor Red
+            continue
+    }
+
+        # Get VM current status
+        $status = (gcloud compute instances describe $vm --zone $Zone --format="get(status)") -replace "`n",""
+
+        if (-not $status) {
+            Write-Host "Error: Unable to get status for ${vm}" -ForegroundColor Red
             continue
         }
 
-        # Skip if the VM is already in the desired state
-        if ($status -eq $desiredStatus) {
-            Write-Host "$vm is already in desired state ($status), skipping." -ForegroundColor Green
-        } else {
-            # Queue the start/stop action in a background job
-            Write-Host "Queuing $Action for $vm (current status: $status)" -ForegroundColor Yellow
-            $jobs += Start-Job -Name $vm -ScriptBlock {
-                param($vmName, $zoneName, $act)
+        # Decide which action is needed
+        $cmd = $null
+        switch ($Action) {
+            "start" {
+                switch ($status) {
+                    "TERMINATED" { $cmd = "start" }
+                    "SUSPENDED"  { $cmd = "resume" }
+                    "RUNNING"    { $cmd = $null }
+                }
+            }
+            "stop" {
+                switch ($status) {
+                    "RUNNING"    { $cmd = "stop" }
+                    "SUSPENDED"  { $cmd = $null } 
+                    "TERMINATED" { $cmd = $null }
+                }
+            }
+        }
 
+        if ($cmd) {
+            Write-Host "Queuing ${cmd} for ${vm} (current status: $status)" -ForegroundColor Yellow
+            $jobs += Start-Job -Name $vm -ScriptBlock {
+                param($vmName, $zoneName, $action)
                 try {
-                    # Run the gcloud compute instances start|stop command
-                    $output = & gcloud compute instances $act $vmName --zone $zoneName 2>&1
-                    return $output
+                    & gcloud compute instances $action $vmName --zone $zoneName 2>&1
+                } catch {
+                    "Error: $_"
                 }
-                catch {
-                    return "Error: $_"
-                }
-            } -ArgumentList $vm, $Zone, $Action
+            } -ArgumentList $vm, $Zone, $cmd
+        } else {
+            Write-Host "${vm} is already in desired state ($status), skipping." -ForegroundColor Green
         }
     }
 
-    # Wait for all background jobs to finish, then print their output
+    # Process all background jobs
     if ($jobs.Count -gt 0) {
-        Write-Host "Waiting for all background operations to complete..." -ForegroundColor Cyan
+        Write-Host "`nWaiting for all operations to complete..." -ForegroundColor Cyan
         $jobs | Wait-Job | Out-Null
 
         foreach ($job in $jobs) {
             $vmName = $job.Name
-            Write-Host "Result for ${vmName}:"
-
-            # Retrieve and print the job result
             $result = Receive-Job -Job $job
-            Write-Host $result -ForegroundColor Green
 
-            # Clean up the completed job
+            # Clean output
+            if ($result -match 'Resuming instance|Updated') {
+                Write-Host "Result for ${vmName}: Resumed successfully." -ForegroundColor Green
+            } elseif ($result -match 'started') {
+                Write-Host "Result for ${vmName}: Started successfully." -ForegroundColor Green
+            } elseif ($result -match 'stopped') {
+                Write-Host "Result for ${vmName}: Stopped successfully." -ForegroundColor Green
+            } else {
+                Write-Host "Result for ${vmName}: $result" -ForegroundColor Yellow
+            }
+
             Remove-Job -Job $job
         }
     } else {
         Write-Host "No VMs required action." -ForegroundColor Green
     }
 }
+
+Set-Alias gcpclients GCPManageClientVMs
+
+
 
 ###===================================================================================###
 ##   Terrfaorm - Update the ingress_rules for GCP FireWall.

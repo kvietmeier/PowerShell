@@ -2,10 +2,10 @@
 <#   
   FileName: UserFunctions.ps1
   Created By: Karl Vietmeier
-    
-  Description:
-    Stripped down to basic functions like setting paths and cd etc.
-
+  
+   PowerShell Profile Configuration:
+       Custom Environment Variables, Fast Directory Aliases, and 
+       System Utility Functions (IP/Unzip/Profile-Explorer)
 #>
 ###====================================================================================================###
 
@@ -14,42 +14,76 @@
 ###====================================================================================================###
 #--        Paths, shortcuts, aliases, and system info
 ###====================================================================================================###
-# Create path variables
-#"C:\Users\" + $env:UserName + '\bin'
-$OneDriveDocsPath = "C:\Users\" + $env:UserName + "\OneDrive - Vast Data\Documents\"
 
-# Misc Folders
-$Repos       = "C:\Users\" + $env:UserName + "\repos"
-$VastRepo    = "C:\Users\" + $env:UserName + "\repos\Vast"
-$VocRepo     = "C:\Users\" + $env:UserName + "\repos\Vast\karlv-vastoncloud\5_3\1748367-GA"
-$TFRepo      = "C:\Users\" + $env:UserName + "\repos\Terraform\"
-$TFGCPRepo   = "C:\Users\" + $env:UserName + "\repos\Terraform\gcp"
-$TFAzureRepo = "C:\Users\" + $env:UserName + "\repos\Terraform\azure"
+###-- Create path variables
 
+# Make this portable - use OneDrive Documents path $env:OneDrive
+$OneDriveDocsPath = Join-Path $env:OneDrive 'Documents'
+
+# Base Repos Folder
+$BaseRepos = Join-Path $env:USERPROFILE 'repos'
+
+# Repos
+$Repos       = $BaseRepos
+$VastRepo    = Join-Path $BaseRepos 'Vast'
+$VocRepo     = Join-Path $VastRepo 'karlv-vastoncloud'
+$TFRepo      = Join-Path $BaseRepos 'Terraform'
+$TFGCPRepo   = Join-Path $TFRepo 'gcp'
+$TFAzureRepo = Join-Path $TFRepo 'azure'
 
 ###================== Moving Around ======================###
-function get-path { ($Env:Path).Split(";") }
-function cdup  { Set-Location .. }
-function cdup2  { Set-Location ..\.. }
-function cdup3 { Set-Location ..\..\.. }
-function cdup4 { Set-Location ..\..\..\.. }
-function cdhome { Set-Location $HOME }
-function cdrepos { Set-Location $Repos }
-function cddocs { Set-Location $OneDriveDocsPath }
+
+# Show each PATH entry on its own line
+function Get-Path { ($Env:Path).Split(';') }
+
+# Go up N directories
+function up  { Set-Location .. }
+function up2 { Set-Location ..\.. }
+function up3 { Set-Location ..\..\.. }
+function up4 { Set-Location ..\..\..\.. }
+
+# Common folder shortcuts
+function home   { Set-Location $HOME }
+function repos  { Set-Location $Repos }
+function docs   { Set-Location $OneDriveDocsPath }
+function vast   { Set-Location $VastRepo }
+function voc    { Set-Location $VocRepo }
+
+<# 
+Example usage
+cdupN         # Same as `cd ..`
+cdupN 2       # Same as `cd ..\..`
+cdupN 4       # Same as `cd ..\..\..\..`
+#>
+
+function cdupN {
+    param (
+        [Parameter(Mandatory = $false)]
+        [ValidateRange(1, 20)]
+        [int]$Levels = 1
+    )
+
+    $upPath = ('..' + ('\..' * ($Levels - 1)))
+    Set-Location $upPath
+}
+Set-Alias up cdup
 
 
 ###================= Terraform Paths ====================###
-function TerraformDir { Set-Location $TFRepo }
-Set-Alias tfrepo TerraformDir
+function CDTerraformDir { Set-Location $TFRepo }
+Set-Alias tfrepo CDTerraformDir
 
+function CDVastRepoDir { Set-Location $VastRepo }
+Set-Alias vastrepo CDVastRepoDir
+
+function CDVoCRepoDir { Set-Location $VoCRepo }
+Set-Alias vocrepo CDVoCRepoDir
+
+
+###================= GCP Paths ====================###
 function TerraformGCPDir { Set-Location $TFGCPRepo}
 Set-Alias tfgcp TerraformGCPDir
 
-function VastRepoDir { Set-Location $VastRepo }
-Set-Alias vastrepo VastRepoDir
-
-function VoCRepoDir { Set-Location $VoCRepo }
-Set-Alias vocrepo VoCRepoDir
 
 ###================= Azure Paths ====================###
 function TerraformAzureDir { Set-Location $TFAzureRepo}

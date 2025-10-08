@@ -36,44 +36,6 @@ Files:
 
 #### Examples
 
-Reference the source files in the master profile script -
-
-~~~powershell
-###--- Functions and Aliases
-# Base folder path
-$OneDriveVastPath = "C:\Users\karl.vietmeier\OneDrive - Vast Data\Documents\WindowsPowerShell"
-
-# Individual Function Definition Files
-$UserFunctionsPath         = Join-Path $OneDriveVastPath "UserFunctions.ps1"
-$LinuxFunctionsPath        = Join-Path $OneDriveVastPath "LinuxFunctions.ps1"
-$KubeCompletionPath        = Join-Path $OneDriveVastPath "kubecompletion.ps1"
-$GCPFunctionPath           = Join-Path $OneDriveVastPath "GCPFunctions.ps1"
-$AzureFunctionPath         = Join-Path $OneDriveVastPath "AzureFunctions.ps1"
-$TerminAndPromptsPath      = Join-Path $OneDriveVastPath "TerminalAndPrompts.ps1"
-$ProcessFunctionsPath      = Join-Path $OneDriveVastPath "ProcessFunctions.ps1"
-$K8SAndGitPath             = Join-Path $OneDriveVastPath "K8SAndGit.ps1"
-$TerrafromFunctionsPath    = Join-Path $OneDriveVastPath "TerraformFunctions.ps1"
-
-# Load each script if it exists
-foreach ($script in @(
-    $UserFunctionsPath,
-    $LinuxFunctionsPath,
-    $KubeCompletionPath,
-    $GCPFunctionPath,
-    $TerminAndPromptsPath,
-    $K8SAndGitPath,
-    $ProcessFunctionsPath,
-    $TerrafromFunctionsPath,
-    $AzureFunctionPath
-)) {
-    if (Test-Path $script) {
-        . $script
-    } else {
-        Write-Warning "Script not found: $script"
-    }
-}
-```
-
 Get your router IP:  
 
 ~~~powershell

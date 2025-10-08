@@ -12,8 +12,40 @@
      * Set Terraform environment variables
 #>
 ###====================================================================================###
+<# 
+Use "join-path" everywhere - 
+Handles Path Separators Correctly Across Platforms:
+  On Windows, paths use backslashes \
+  On Linux/macOS, paths use forward slashes /
+
+Join-Path automatically uses the correct directory separator for the OS PowerShell is running on.
+#>
+
+#-------------------------------------------
+# Ensure OneDrive Module Path is in PSModulePath
+# Or install modules for all users
+#-------------------------------------------
+$OneDriveModulePath = Join-Path $env:OneDrive 'Documents\PowerShell\Modules'
+if (-not ($env:PSModulePath -split ';' | Where-Object { $_ -eq $OneDriveModulePath })) {
+    $env:PSModulePath += ";$OneDriveModulePath"
+}
+
+#-------------------------------------------
+# Import Modules Safely
+#-------------------------------------------
+$ModulesToLoad = @('Get-ChildItemColor') # 'posh-git' optional
+
+foreach ($Module in $ModulesToLoad) {
+    try {
+        Import-Module $Module -ErrorAction Stop
+    }
+    catch {
+        Write-Warning "Module not found: $Module"
+    }
+}
 
 
+<# 
 #-------------------------------------------
 # Import Modules Safely
 #-------------------------------------------
@@ -27,6 +59,8 @@ foreach ($Module in $ModulesToLoad) {
         Write-Warning "Module not found: $Module"
     }
 }
+#>
+
 
 #-------------------------------------------
 # Set Script Root if not already set
@@ -39,18 +73,21 @@ Set-Location $PSscriptroot
 #-------------------------------------------
 # Load Confidential Variables
 #-------------------------------------------
-. 'C:\.info\miscinfo.ps1'
+. 'somewhere'
 
 #-------------------------------------------
 # Load External Functions
 #-------------------------------------------
-$OneDriveVASTPath = "C:\Users\karl.vietmeier\OneDrive - Vast Data\Documents\WindowsPowerShell"
+$UserProfile = [Environment]::GetFolderPath("UserProfile")
+$OneDriveKarlPath = Join-Path $UserProfile "OneDrive - Karl\Documents\WindowsPowerShell"
+
+#$OneDriveVASTPath = "C:\Users\karl.vietmeier\OneDrive - Vast Data\Documents\WindowsPowerShell"
 
 $FunctionFiles = @(
     "UserFunctions.ps1",
     "LinuxFunctions.ps1",
-    "kubecompletion.ps1",
     "GCPFunctions.ps1",
+    "AWS-Functions.ps1",
     "AzureFunctions.ps1",
     "TerminalAndPrompts.ps1",
     "ProcessFunctions.ps1",
@@ -59,7 +96,7 @@ $FunctionFiles = @(
 )
 
 foreach ($FunctionFile in $FunctionFiles) {
-    $FullPath = Join-Path $OneDriveVASTPath $FunctionFile
+    $FullPath = Join-Path $OneDriveKarlPath $FunctionFile
     if (Test-Path $FullPath) {
         . $FullPath
     } else {
@@ -73,13 +110,21 @@ foreach ($FunctionFile in $FunctionFiles) {
 $GitConfigPath = "$env:USERPROFILE\.gitconfig"
 $GitCredsPath  = "$env:USERPROFILE\.git-credentials"
 
+
 #-------------------------------------------
 # Check Admin Rights
 #-------------------------------------------
-$Identity       = [Security.Principal.WindowsIdentity]::GetCurrent()
-$Principal      = New-Object Security.Principal.WindowsPrincipal $Identity
-$IsAdmin        = $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-$global:IsAdmin = $IsAdmin  # for later conditional logic
+# Get the current Windows user identity (the user running the script)
+$Identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+
+# Create a principal object representing the current user’s security context
+$Principal = New-Object Security.Principal.WindowsPrincipal $Identity
+
+# Check if the principal (current user) belongs to the Administrator role
+$IsAdmin = $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+# Make this boolean available globally, so other parts of your script can check it
+$global:IsAdmin = $IsAdmin
 
 # Clean up temp variables
 Remove-Variable Identity, Principal
@@ -122,9 +167,18 @@ $env:ARM_CLIENT_SECRET   = "$TFM_AppSecret"
 # GCP (TBD)
 
 # VAST Labs Keys
-$env:DRunPEM = "C:\Users\karl.vietmeier\Documents\Projects\keys\vastdatarunners.pem"
 
+# Engineering Lab Key
+$DRunPemPath = Join-Path $env:OneDrive "Documents/Projects/keys/vastdatarunners.pem"
+if (Test-Path $DRunPemPath) {
+    $env:DRunPEM = $DRunPemPath
+}
 
+# AWS Keys
+$PemPath = Join-Path $HOME ".ssh\other_keys\aws.karlv-poc.pem"
+if (Test-Path $PemPath) {
+    $env:AWSPem = $PemPath
+}
 
 
 ###====================================================================================###

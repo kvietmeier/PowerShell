@@ -1,69 +1,122 @@
-###====================================================================================###
-<#   
-  FileName: ProcessFunctions.ps1
-  Created By: Karl Vietmeier
-    
-  Description:
-     Confidential information we don't want exposed in profile.ps1 so we can share it
+### =========================================================================================
+<# 
+    FileName: pstree.ps1
+    Created By: Karl Vietmeier
 
+    Description:
+    A PowerShell function to display the process tree similar to Unix `pstree`.
+    Supports:
+      - Fancy "branch style" output with ├── and └──
+      - Flat indented output
+      - Optional filtering by process name
+      - Displays PID and CommandLine or process name if no command line available
+
+    Usage Examples:
+      pstree                     -> Basic tree
+      pstree -Fancy              -> Fancy tree view
+      pstree -Name chrome        -> Filtered flat view for "chrome"
+      pstree -Fancy -Name explorer -> Fancy view filtered for "explorer"
 #>
-###====================================================================================###
-
-###====================================================================================================###
-###---  Process management
-###     https://gist.github.com/aroben/5542538
-###====================================================================================================###
+### =========================================================================================
 
 function pstree {
-  # Works like "ps -aux"
-	$ProcessesById = @{}
-	foreach ($Process in (Get-WMIObject -Class Win32_Process)) {
-		$ProcessesById[$Process.ProcessId] = $Process
-	}
+    [CmdletBinding()]
+    param (
+        [switch]$Fancy,      # Show output with graphical tree branches
+        [string]$Name        # Filter starting processes by name (wildcards allowed)
+    )
 
-	$ProcessesWithoutParents = @()
-	$ProcessesByParent = @{}
-	foreach ($Pair in $ProcessesById.GetEnumerator()) {
-		$Process = $Pair.Value
+    # Create hashtable to map PID to process info
+    $ProcessesById = @{}
+    foreach ($Process in Get-CimInstance Win32_Process) {
+        $ProcessesById[$Process.ProcessId] = $Process
+    }
 
-		if (($Process.ParentProcessId -eq 0) -or !$ProcessesById.ContainsKey($Process.ParentProcessId)) {
-			$ProcessesWithoutParents += $Process
-			continue
-		}
+    # Build parent-child relationships
+    $ProcessesWithoutParents = @{}
+    $ProcessesByParent = @{}
 
-		if (!$ProcessesByParent.ContainsKey($Process.ParentProcessId)) {
-			$ProcessesByParent[$Process.ParentProcessId] = @()
-		}
-		$Siblings = $ProcessesByParent[$Process.ParentProcessId]
-		$Siblings += $Process
-		$ProcessesByParent[$Process.ParentProcessId] = $Siblings
-	}
+    foreach ($Process in $ProcessesById.Values) {
+        if (($Process.ParentProcessId -eq 0) -or (-not $ProcessesById.ContainsKey($Process.ParentProcessId))) {
+            # No parent found, root process
+            $ProcessesWithoutParents[$Process.ProcessId] = $Process
+        } else {
+            # Add as a child to its parent
+            if (-not $ProcessesByParent.ContainsKey($Process.ParentProcessId)) {
+                $ProcessesByParent[$Process.ParentProcessId] = @()  # Initialize the array if not present
+            }
+            $ProcessesByParent[$Process.ParentProcessId] += $Process
+        }
+    }
 
-	function Show-ProcessTree ([UInt32]$ProcessId, $IndentLevel) {
+    # Flat indented tree output
+    function Show-ProcessFlat {
+        param ([UInt32]$ProcessId, [int]$Level)
+
+        $Process = $ProcessesById[$ProcessId]
+        $Indent = " " * ($Level * 4)
+        $Description = if ($Process.CommandLine) { $Process.CommandLine } else { $Process.Caption }
+        Write-Output ("{0,6} {1}{2}" -f $Process.ProcessId, $Indent, $Description)
+
+        foreach ($Child in ($ProcessesByParent[$ProcessId] | Sort-Object CreationDate)) {
+            Show-ProcessFlat -ProcessId $Child.ProcessId -Level ($Level + 1)
+        }
+    }
+# Fancy graphical tree output
+	function Show-ProcessTree {
+		param (
+			[UInt32]$ProcessId, 
+			[string]$Indent = "", 
+			[bool]$IsLast = $true
+		)
+
 		$Process = $ProcessesById[$ProcessId]
-		$Indent = " " * $IndentLevel
-		if ($Process.CommandLine) {
-			$Description = $Process.CommandLine
-		} else {
-			$Description = $Process.Caption
+		$Branch = if ($Indent) {
+			if ($IsLast) { "$Indent`-- " } else { "$Indent|- " }
+		} else { "" }
+
+		$Description = if ($Process.CommandLine) { $Process.CommandLine } else { $Process.Caption }
+		Write-Output ("{0,6} {1}{2}" -f $Process.ProcessId, $Branch, $Description)
+
+		$Children = $ProcessesByParent[$ProcessId] | Sort-Object CreationDate
+		$ChildCount = $Children.Count
+		for ($i = 0; $i -lt $ChildCount; $i++) {
+			$Child = $Children[$i]
+			$ChildIsLast = ($i -eq ($ChildCount - 1))
+			#$NewIndent = $Indent + (if ($IsLast) { "    " } else { "|   " })
+			if ($IsLast) {
+  				$NewIndent = $Indent + "    "
+			} else {
+		    	$NewIndent = $Indent + "|   "
+			}
+			Show-ProcessTree -ProcessId $Child.ProcessId -Indent $NewIndent -IsLast:$ChildIsLast
 		}
-
-		Write-Output ("{0,6}{1} {2}" -f $Process.ProcessId, $Indent, $Description)
-		foreach ($Child in ($ProcessesByParent[$ProcessId] | Sort-Object CreationDate)) {
-			Show-ProcessTree $Child.ProcessId ($IndentLevel + 4)
-		}
-  }
-
-	Write-Output ("{0,6} {1}" -f "PID", "Command Line")
-	Write-Output ("{0,6} {1}" -f "---", "------------")
-
-	foreach ($Process in ($ProcessesWithoutParents | Sort-Object CreationDate)) {
-		Show-ProcessTree $Process.ProcessId 0
 	}
-}
 
+    # Print header
+    Write-Output ("{0,6} {1}" -f "PID", "Command Line")
+    Write-Output ("{0,6} {1}" -f "---", "------------")
 
-function ListGUIApps {
-  Get-Process | Where-Object {$_.mainWindowTitle} | Format-Table Id, Name, mainWindowtitle -AutoSize
+    # Start from root processes
+    $Roots = $ProcessesWithoutParents.Values | Sort-Object CreationDate
+
+    foreach ($Process in $Roots) {
+        if ($Name) {
+            # If filtering by process name
+            if ($Process.Caption -like "*$Name*") {
+                if ($Fancy) {
+                    Show-ProcessTree -ProcessId $Process.ProcessId
+                } else {
+                    Show-ProcessFlat -ProcessId $Process.ProcessId -Level 0
+                }
+            }
+        } else {
+            # No filter
+            if ($Fancy) {
+                Show-ProcessTree -ProcessId $Process.ProcessId
+            } else {
+                Show-ProcessFlat -ProcessId $Process.ProcessId -Level 0
+            }
+        }
+    }
 }
-Set-Alias -Name listapps -Value ListGUIApps
