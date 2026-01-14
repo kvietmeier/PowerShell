@@ -25,7 +25,21 @@ SUMMARY OF ACTIONS
     7. STRUCTURE: Initializes the 'VAST' and 'Servers' Organizational Unit (OU) hierarchy.
 #>
 
-Import-Module ActiveDirectory
+# --- ADMIN & MODULE GATEKEEPER ---
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "ERROR: YOU MUST RUN THIS AS ADMINISTRATOR." -ForegroundColor Red
+    exit
+}
+
+if (!(Get-Module -ListAvailable ActiveDirectory)) {
+    Write-Host "Active Directory module missing. Attempting to install..." -ForegroundColor Yellow
+    Install-WindowsFeature RSAT-AD-PowerShell
+    Import-Module ActiveDirectory
+} else {
+    Import-Module ActiveDirectory
+}
+
 
 # 1. Disable Firewall (Security is managed via GCP VPC Firewall)
 Write-Host "Disabling local firewall profiles..." -ForegroundColor Cyan

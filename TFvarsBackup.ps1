@@ -18,9 +18,30 @@ if (-not $RepoRoot) {
     $RepoRoot = Join-Path $env:USERPROFILE "repos\Terraform"
 }
 
+# Make Workstation safe
 if (-not $BackupRoot) {
-    $BackupRoot = "C:\Users\karl.vietmeier\OneDrive - KCV Consulting\Documents\TerraformBackup"
+    # Resolve OneDrive root dynamically (works across users & machines)
+    $OneDriveRoot = $env:OneDriveCommercial `
+        ?? $env:OneDriveConsumer `
+        ?? $env:OneDrive
+
+    if (-not $OneDriveRoot) {
+        throw "OneDrive is not configured or OneDrive environment variables are missing."
+    }
+
+    $BackupRoot = Join-Path $OneDriveRoot "Documents\TerraformBackup"
+
+    # Ensure OneDrive backup is fully local
+    attrib -U +P $BackupRoot /S /D
 }
+
+
+# Fail fast if OneDrive folder is cloud-only (not hydrated)
+$attrs = (Get-Item $BackupRoot).Attributes
+if ($attrs -match "Offline") {
+    throw "OneDrive backup path exists but is cloud-only. Mark it 'Always keep on this device'."
+}
+
 
 # Create a timestamped backup directory
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"

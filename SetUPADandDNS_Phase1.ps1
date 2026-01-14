@@ -23,6 +23,14 @@ SUMMARY OF ACTIONS
     5. PROMOTION: Deploys a new Forest (ginaz.org) and triggers a mandatory reboot.
 #>
 
+# Check for Administrative privileges
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Error "ERROR: This script must be run as an Administrator. Please restart PowerShell with 'Run as Administrator'."
+    exit
+}
+
+
 # 1. Set OS IP to Static (Crucial for AD stability)
 Write-Host "Configuring Static IP based on GCP Assignment..." -ForegroundColor Cyan
 $IPConfig = Get-NetIPConfiguration | Where-Object {$_.IPv4Address -ne $null}
