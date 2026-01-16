@@ -1,94 +1,123 @@
 #=======================================================================================
 # Script Name : Backup-Tfvars.ps1
-# Description : Backs up all .tfvars files from a Terraform repo, excluding certain folders
-# Parameters  :
-#   -RepoRoot   : Root path of the Terraform repo
-#   -BackupRoot : Destination for backups
-#   -ZipBackup  : Optional switch to compress the backup folder into a ZIP
+# Description : Backs up all .tfvars files from multiple Terraform repos
+#               into a OneDrive-backed local folder, preserving structure.
 #=======================================================================================
 
 param (
-    [string]$RepoRoot,
+    [string[]]$RepoRoots,
     [string]$BackupRoot,
     [switch]$ZipBackup
 )
 
-# Set default paths if none provided
-if (-not $RepoRoot) {
-    $RepoRoot = Join-Path $env:USERPROFILE "repos\Terraform"
+# -----------------------------
+# Default repo roots
+# -----------------------------
+if (-not $RepoRoots) {
+
+    $UserProfile = [Environment]::GetFolderPath("UserProfile")
+    $ReposBase   = Join-Path $UserProfile "repos"
+
+    $RepoRoots = @(
+        (Join-Path $ReposBase "Terraform"),
+        (Join-Path $ReposBase "vastoncloud")
+    )
 }
 
-# Make Workstation safe
+# -----------------------------
+# Resolve OneDrive backup root
+# -----------------------------
 if (-not $BackupRoot) {
-    # Resolve OneDrive root dynamically (works across users & machines)
-    $OneDriveRoot = $env:OneDriveCommercial `
-        ?? $env:OneDriveConsumer `
-        ?? $env:OneDrive
+
+    $OneDriveRoot = @(
+        $env:OneDriveCommercial,
+        $env:OneDriveConsumer,
+        $env:OneDrive
+    ) | Where-Object { $_ } | Select-Object -First 1
 
     if (-not $OneDriveRoot) {
         throw "OneDrive is not configured or OneDrive environment variables are missing."
     }
 
     $BackupRoot = Join-Path $OneDriveRoot "Documents\TerraformBackup"
-
-    # Ensure OneDrive backup is fully local
-    attrib -U +P $BackupRoot /S /D
 }
 
+# Ensure BackupRoot exists
+if (-not (Test-Path $BackupRoot)) {
+    New-Item -Path $BackupRoot -ItemType Directory -Force | Out-Null
+}
 
-# Fail fast if OneDrive folder is cloud-only (not hydrated)
+# Ensure OneDrive folder is fully local
+attrib -U +P $BackupRoot /S /D | Out-Null
+
+# Fail fast if cloud-only
 $attrs = (Get-Item $BackupRoot).Attributes
 if ($attrs -match "Offline") {
     throw "OneDrive backup path exists but is cloud-only. Mark it 'Always keep on this device'."
 }
 
-
-# Create a timestamped backup directory
+# -----------------------------
+# Create timestamped backup dir
+# -----------------------------
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 $backupDir = Join-Path $BackupRoot "tfvars-backup-$timestamp"
 
-Write-Host "Backing up .tfvars files from: $RepoRoot"
-Write-Host "Backup destination: $backupDir"
+New-Item -Path $backupDir -ItemType Directory -Force | Out-Null
+Write-Host "Backup root: $backupDir"
 
-# Define folders to exclude during backup
+# -----------------------------
+# Backup logic
+# -----------------------------
 $excludedDirs = @(".terraform", ".git")
 
-# Find all .tfvars files recursively, skipping excluded folders
-$tfvarsFiles = Get-ChildItem -Path $RepoRoot -Recurse -Filter "*.tfvars" -File | Where-Object {
-    $fullPath = $_.FullName.ToLower()
-    foreach ($excluded in $excludedDirs) {
-        if ($fullPath -like "*\$excluded\*") {
-            return $false
-        }
+foreach ($RepoRoot in $RepoRoots) {
+
+    if (-not (Test-Path $RepoRoot)) {
+        Write-Warning "Repo path not found, skipping: $RepoRoot"
+        continue
     }
-    return $true
+
+    $repoName = Split-Path $RepoRoot -Leaf
+    $repoBackupRoot = Join-Path $backupDir $repoName
+
+    Write-Host "`nBacking up repo: $RepoRoot"
+
+    $tfvarsFiles = Get-ChildItem -Path $RepoRoot -Recurse -Filter "*.tfvars" -File | Where-Object {
+        $fullPath = $_.FullName.ToLower()
+        foreach ($excluded in $excludedDirs) {
+            if ($fullPath -like "*\$excluded\*") {
+                return $false
+            }
+        }
+        return $true
+    }
+
+    if (-not $tfvarsFiles) {
+        Write-Host "  No .tfvars files found."
+        continue
+    }
+
+    $repoRootResolved = (Resolve-Path $RepoRoot).Path
+
+    foreach ($file in $tfvarsFiles) {
+        $relativePath = $file.FullName.Substring($repoRootResolved.Length + 1)
+        $destPath = Join-Path $repoBackupRoot $relativePath
+        $destDir  = Split-Path -Parent $destPath
+
+        New-Item -Path $destDir -ItemType Directory -Force | Out-Null
+        Copy-Item -Path $file.FullName -Destination $destPath -Force
+
+        Write-Host "  Backed up: $repoName\$relativePath"
+    }
 }
 
-# Stop if no files were found
-if ($tfvarsFiles.Count -eq 0) {
-    Write-Host "No .tfvars files found (outside excluded folders)."
-    return
-}
-
-# Create the backup directory
-New-Item -Path $backupDir -ItemType Directory -Force | Out-Null
-
-# Copy each .tfvars file, preserving directory structure
-foreach ($file in $tfvarsFiles) {
-    $relativePath = $file.FullName.Substring((Resolve-Path $RepoRoot).Path.Length + 1)
-    $destPath = Join-Path $backupDir $relativePath
-    $destDir = Split-Path -Parent $destPath
-
-    New-Item -Path $destDir -ItemType Directory -Force | Out-Null
-    Copy-Item -Path $file.FullName -Destination $destPath
-    Write-Host "Backed up: $relativePath"
-}
-
-# Optional: Create a ZIP archive of the backup
+# -----------------------------
+# Optional ZIP archive
+# -----------------------------
 if ($ZipBackup) {
     $zipFile = "$backupDir.zip"
     Compress-Archive -Path $backupDir -DestinationPath $zipFile -Force
-    Write-Host "Created zip archive: $zipFile"
+    Write-Host "`nCreated zip archive: $zipFile"
 }
 
-Write-Host "Backup complete."
+Write-Host "`nBackup complete."
