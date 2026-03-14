@@ -73,13 +73,13 @@ Set-Location $PSscriptroot
 #-------------------------------------------
 # Load Confidential Variables
 #-------------------------------------------
-. 'somewhere'
+. 'C:\.info\miscinfo.ps1'
 
 #-------------------------------------------
 # Load External Functions
 #-------------------------------------------
 $UserProfile = [Environment]::GetFolderPath("UserProfile")
-$OneDriveKarlPath = Join-Path $UserProfile "OneDrive - Karl\Documents\WindowsPowerShell"
+$OneDriveVASTPath = Join-Path $UserProfile "OneDrive - Vast Data\Documents\WindowsPowerShell"
 
 #$OneDriveVASTPath = "C:\Users\karl.vietmeier\OneDrive - Vast Data\Documents\WindowsPowerShell"
 
@@ -87,7 +87,7 @@ $FunctionFiles = @(
     "UserFunctions.ps1",
     "LinuxFunctions.ps1",
     "GCPFunctions.ps1",
-    "AWS-Functions.ps1",
+    "AWSFunctions.ps1",
     "AzureFunctions.ps1",
     "TerminalAndPrompts.ps1",
     "ProcessFunctions.ps1",
@@ -96,7 +96,7 @@ $FunctionFiles = @(
 )
 
 foreach ($FunctionFile in $FunctionFiles) {
-    $FullPath = Join-Path $OneDriveKarlPath $FunctionFile
+    $FullPath = Join-Path $OneDriveVASTPath $FunctionFile
     if (Test-Path $FullPath) {
         . $FullPath
     } else {

@@ -3,7 +3,7 @@
 ###===================================================================================###
 function GCPAuthADCCreds {
     param (
-        [string]$GCPProject = "myproject
+        [string]$GCPProject = "clouddev-itdesk124"
     )
 
     if (-not $env:GOOGLE_APPLICATION_CREDENTIALS) {
@@ -106,6 +106,7 @@ function GCPListSubnets () {
 function GCPListInstances () {
     gcloud compute instances list --format="table(name, status, networkInterfaces[0].accessConfigs[0].natIP, networkInterfaces[0].networkIP, zone)"
 }
+
 
 ###--- GCPManageClientVMs
 <#
