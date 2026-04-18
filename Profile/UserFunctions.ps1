@@ -1,4 +1,4 @@
-###====================================================================================================###
+﻿###====================================================================================================###
 <#   
   FileName: UserFunctions.ps1
   Created By: Karl Vietmeier
@@ -37,7 +37,7 @@ $TFAzureRepo = Join-Path $TFRepo 'azure'
 function Get-Path { ($Env:Path).Split(';') }
 
 # Go up N directories
-function up  { Set-Location .. }
+function up1  { Set-Location .. }
 function up2 { Set-Location ..\.. }
 function up3 { Set-Location ..\..\.. }
 function up4 { Set-Location ..\..\..\.. }
@@ -66,7 +66,6 @@ function cdupN {
     $upPath = ('..' + ('\..' * ($Levels - 1)))
     Set-Location $upPath
 }
-Set-Alias up cdup
 
 
 ###================= Terraform Paths ====================###
@@ -103,6 +102,39 @@ Set-Alias billrun AKSDir
 ###====================================================================================================###
 ###--- Misc utilities
 ###====================================================================================================###
+
+function Sync-Repos {
+    $ReposDir = Join-Path $HOME "repos"
+
+    if (-not (Test-Path $ReposDir)) {
+        Write-Host "[X] Error: Repos directory not found at $ReposDir" -ForegroundColor Red
+        return
+    }
+
+    Write-Host "`n>>> Starting bulk sync for $ReposDir..." -ForegroundColor Cyan
+    Push-Location $ReposDir
+
+    Get-ChildItem -Directory | ForEach-Object {
+        $repoPath = $_.FullName
+        $repoName = $_.Name
+        
+        if (Test-Path (Join-Path $repoPath ".git")) {
+            Write-Host "`n[+] Syncing: $repoName" -ForegroundColor Blue
+            Push-Location $repoPath
+            
+            if (git remote) {
+                git pull --rebase --autostash
+            } else {
+                Write-Host "    [-] Skipping: No remote configured." -ForegroundColor DarkGray
+            }
+            Pop-Location
+        }
+    }
+
+    Pop-Location
+    Write-Host "`n[OK] All repos synced and ready for the road." -ForegroundColor Green
+}
+Set-Alias syncrepos Sync-Repos
 
 function GetMyIP {
   $RouterIP = Invoke-RestMethod -uri "https://ipinfo.io"
